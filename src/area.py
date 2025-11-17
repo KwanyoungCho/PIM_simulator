@@ -71,32 +71,10 @@ class Area:
         
         return True
     
-    def get_tile(self, weight_id: str) -> Optional[WeightTile]:
-        """Weight ID로 tile 검색"""
-        for tile in self.tiles:
-            if tile.weight_id == weight_id:
-                return tile
-        return None
-    
     def clear(self):
         """Area 초기화"""
         self.tiles.clear()
         self.utilization = 0
-    
-    def get_utilization_ratio(self) -> float:
-        """Area 사용률 반환 (0.0 ~ 1.0)"""
-        return self.utilization / self.MAX_OUTPUT_DIM
-    
-    def get_stats(self) -> Dict:
-        """Area 통계 정보 반환"""
-        return {
-            'area_id': self.area_id,
-            'utilization': self.utilization,
-            'max_output_dim': self.MAX_OUTPUT_DIM,
-            'utilization_ratio': self.get_utilization_ratio(),
-            'num_tiles': len(self.tiles),
-            'tiles': [str(tile) for tile in self.tiles]
-        }
     
     def __repr__(self):
         return (f"Area(id={self.area_id}, "

@@ -12,19 +12,19 @@ class InferenceScheduler:
     def __init__(self,
                  pim_simulator: PIMSimulator,
                  compute_graph: ComputeGraph,
-                 shared_sram_bandwidth_gbps: float = 10.0):  # 10 GB/s
+                 shared_sram_bandwidth_kb_per_us: float = 3.2):  # 3.2 KB/us
         """
         Args:
             pim_simulator: PIM 시뮬레이터
             compute_graph: 연산 그래프
-            shared_sram_bandwidth_gbps: 공유 SRAM 대역폭 (GB/s)
+            shared_sram_bandwidth_kb_per_us: 공유 SRAM 대역폭 (KB/us)
         """
         self.pim = pim_simulator
         self.graph = compute_graph
         self.activation_manager = ActivationManager()
         
-        # 대역폭 변환: GB/s -> bytes/ns
-        self.sram_bandwidth_bytes_per_ns = shared_sram_bandwidth_gbps * 1e9 / 1e9  # = GB/s
+        # 대역폭: KB/us -> bytes/us
+        self.sram_bandwidth_bytes_per_us = shared_sram_bandwidth_kb_per_us * 1024
         
         # 이벤트 큐 (우선순위 큐: 시간 순)
         self.event_queue: List[Event] = []
@@ -32,17 +32,21 @@ class InferenceScheduler:
         # Array 사용 상태 추적
         self.array_busy_until: Dict[int, float] = {i: 0.0 for i in range(pim_simulator.num_arrays)}
         
+        # NPU 사용 상태 추적
+        self.npu_busy_until: Dict[int, float] = {i: 0.0 for i in range(pim_simulator.num_npus)}
+        
         # 실행 상태
-        self.current_time_ns = 0.0
+        self.current_time_us = 0.0
         self.completed_nodes: set = set()
-        self.running_nodes: Dict[str, Tuple[int, int]] = {}  # {node_id: (array_id, area_id)}
+        self.running_nodes: Dict[str, Tuple[int, int]] = {}  # {node_id: (array_id, area_id)} for eflash
+        self.running_npu_nodes: Dict[str, int] = {}  # {node_id: npu_id} for npu
         
         # 개선: Activation lifetime 관리 (reference counting)
         self.activation_lifetimes: Dict[str, Dict] = {}  # {buffer_id: lifetime_info}
         
         # 통계
-        self.total_compute_time_ns = 0.0
-        self.total_transfer_time_ns = 0.0
+        self.total_compute_time_us = 0.0
+        self.total_transfer_time_us = 0.0
         self.timeline: List[Event] = []
         self.deallocated_count = 0
         self.deallocated_bytes = 0
@@ -60,9 +64,56 @@ class InferenceScheduler:
             data_size_bytes: 전송할 데이터 크기 (bytes)
             
         Returns:
-            전송 시간 (ns)
+            전송 시간 (us)
         """
-        return data_size_bytes / self.sram_bandwidth_bytes_per_ns
+        return data_size_bytes / self.sram_bandwidth_bytes_per_us
+    
+    def _calculate_flops(self, node: ComputeNode) -> int:
+        """
+        노드의 FLOP (Floating Point Operations) 계산
+        
+        Args:
+            node: ComputeNode
+            
+        Returns:
+            총 연산 수 (INT8 operations)
+        """
+        node_type = node.node_type
+        
+        if node_type == "fc" or node_type == "matmul":
+            # Fully Connected / Matrix Multiplication
+            # Input: (batch_size, input_features) or (input_features,)
+            # Output: (batch_size, output_features) or (output_features,)
+            # Weight: (input_features, output_features)
+            # FLOP = 2 × batch_size × input_features × output_features
+            
+            input_features = node.input_shape[-1]  # 마지막 차원이 feature 수
+            output_features = node.output_shape[-1]
+            
+            # Batch size (없으면 1)
+            if len(node.input_shape) > 1:
+                batch_size = node.input_shape[0]
+            else:
+                batch_size = 1
+            
+            flops = 2 * batch_size * input_features * output_features
+            return flops
+        
+        elif node_type == "add" or node_type == "concat":
+            # Element-wise operations (eFlash array에서 즉시 처리, 시간 0)
+            return 0
+        
+        elif node_type == "maxpool":
+            # MaxPool (eFlash array에서 즉시 처리, 시간 0)
+            return 0
+        
+        elif node_type == "upsample":
+            # Upsample (eFlash array에서 즉시 처리, 시간 0)
+            return 0
+        
+        else:
+            # 기타 연산
+            return 0
     
     def _determine_activation_locations(self,
                                         producer_node: ComputeNode,
@@ -70,38 +121,51 @@ class InferenceScheduler:
         """
         개선: Activation을 저장할 위치들 결정 (multi-location 지원)
         
-        같은 array의 consumer와 다른 array의 consumer를 모두 고려하여
-        최적 위치에 중복 저장
+        eFlash Array, NPU 혼재 환경에서 최적 위치 결정
         
         Args:
             producer_node: 생성하는 노드
             consumer_nodes: 사용할 노드들
             
         Returns:
-            저장 위치 리스트 ["shared_sram", "array_0_sram", ...]
+            저장 위치 리스트 ["shared_sram", "array_0_sram", "npu_0_sram", ...]
         """
         if not consumer_nodes:
             return ["shared_sram"]
         
-        producer_array = producer_node.array_id
-        consumer_arrays = {node.array_id for node in consumer_nodes}
-        
         locations = []
         
-        # Case 1: 다른 array에서 사용? → shared_sram 필수
-        has_different_array = any(arr != producer_array for arr in consumer_arrays)
-        if has_different_array or len(consumer_nodes) > 1:
+        # Producer 장치 정보
+        producer_device = producer_node.device_type
+        producer_id = producer_node.array_id if producer_device == "eflash" else producer_node.npu_id
+        
+        # Consumer 장치 정보 수집
+        consumer_devices = {(node.device_type, 
+                             node.array_id if node.device_type == "eflash" else node.npu_id) 
+                           for node in consumer_nodes}
+        
+        # Case 1: 여러 장치에서 사용 or 다른 타입 장치에서 사용 → shared_sram
+        has_cross_device = any(dev_type != producer_device or dev_id != producer_id 
+                               for dev_type, dev_id in consumer_devices)
+        if has_cross_device or len(consumer_nodes) > 1:
             locations.append("shared_sram")
         
-        # Case 2: 같은 array에서도 사용? → 내부 SRAM에도 저장 (중복)
-        if producer_array in consumer_arrays:
-            internal = f"array_{producer_array}_sram"
+        # Case 2: 같은 장치에서도 사용? → 내부 SRAM에도 저장
+        same_device_key = (producer_device, producer_id)
+        if same_device_key in consumer_devices:
+            if producer_device == "eflash":
+                internal = f"array_{producer_id}_sram"
+            else:  # npu
+                internal = f"npu_{producer_id}_sram"
             if internal not in locations:
                 locations.append(internal)
         
-        # Case 3: 같은 array만 사용, consumer 1개 → 내부 SRAM만
-        if len(consumer_arrays) == 1 and producer_array in consumer_arrays and len(consumer_nodes) == 1:
-            return [f"array_{producer_array}_sram"]
+        # Case 3: 같은 장치만 사용, consumer 1개 → 내부 SRAM만
+        if len(consumer_devices) == 1 and same_device_key in consumer_devices and len(consumer_nodes) == 1:
+            if producer_device == "eflash":
+                return [f"array_{producer_id}_sram"]
+            else:
+                return [f"npu_{producer_id}_sram"]
         
         # Fallback
         if not locations:
@@ -202,22 +266,132 @@ class InferenceScheduler:
         self.deallocated_count += 1
         self.deallocated_bytes += freed_bytes
     
-    def _schedule_compute(self, node: ComputeNode, start_time_ns: float):
+    def _schedule_npu_compute(self, node: ComputeNode, start_time_us: float):
+        """
+        NPU 연산 스케줄링 (TOPS 기반)
+        
+        Args:
+            node: 실행할 NPU 노드
+            start_time_us: 스케줄링 시작 시간 (us)
+        """
+        npu_id = node.npu_id
+        npu = self.pim.get_npu(npu_id)
+        
+        # Transfer 시작 시간
+        transfer_start_time = start_time_us
+        
+        # 입력 데이터 전송 시간 계산
+        transfer_time_us = 0.0
+        transfer_details = []
+        
+        for input_node_id in node.input_nodes:
+            buffer_id = self.activation_manager.node_outputs.get(input_node_id)
+            if buffer_id and buffer_id in self.activation_lifetimes:
+                lifetime = self.activation_lifetimes[buffer_id]
+                
+                # NPU SRAM에 있으면 전송 없음
+                if f"npu_{npu_id}_sram" in lifetime['storage_locations']:
+                    transfer_details.append({
+                        'buffer_id': buffer_id,
+                        'location': f"npu_{npu_id}_sram",
+                        'size_bytes': lifetime['buffer'].size_bytes,
+                        'time_us': 0.0
+                    })
+                else:
+                    # Shared SRAM에서 전송
+                    xfer_time = self._calculate_transfer_time(lifetime['buffer'].size_bytes)
+                    transfer_time_us += xfer_time
+                    transfer_details.append({
+                        'buffer_id': buffer_id,
+                        'location': 'shared_sram',
+                        'size_bytes': lifetime['buffer'].size_bytes,
+                        'time_us': xfer_time
+                    })
+        
+        if transfer_time_us > 0:
+            # Transfer 이벤트 생성
+            transfer_start_event = Event(
+                time_us=transfer_start_time,
+                event_type=EventType.TRANSFER_START,
+                node_id=node.node_id,
+                data={
+                    'npu_id': npu_id,
+                    'transfer_time_us': transfer_time_us,
+                    'details': transfer_details
+                }
+            )
+            self._add_event(transfer_start_event)
+            
+            transfer_done_time = transfer_start_time + transfer_time_us
+            transfer_done_event = Event(
+                time_us=transfer_done_time,
+                event_type=EventType.TRANSFER_DONE,
+                node_id=node.node_id,
+                data={
+                    'npu_id': npu_id,
+                    'transfer_time_us': transfer_time_us,
+                    'details': transfer_details
+                }
+            )
+            self._add_event(transfer_done_event)
+            
+            self.total_transfer_time_us += transfer_time_us
+        else:
+            # Transfer 없으면 바로 Compute
+            for detail in transfer_details:
+                print(f"  [Transfer] {node.node_id} reads {detail['buffer_id']} from {detail['location']} ({detail['time_us']:.2f} us)")
+            
+            # NPU available time 체크
+            npu_available_time = self.npu_busy_until.get(npu_id, 0.0)
+            compute_start_time = max(transfer_start_time, npu_available_time)
+            
+            # FLOP 계산 및 실행 시간
+            flops = self._calculate_flops(node)
+            compute_time_us = npu.calculate_execution_time(flops)
+            
+            compute_start_event = Event(
+                time_us=compute_start_time,
+                event_type=EventType.COMPUTE_START,
+                node_id=node.node_id,
+                data={'npu_id': npu_id, 'flops': flops, 'compute_time_us': compute_time_us}
+            )
+            self._add_event(compute_start_event)
+            
+            compute_done_time = compute_start_time + compute_time_us
+            compute_done_event = Event(
+                time_us=compute_done_time,
+                event_type=EventType.COMPUTE_DONE,
+                node_id=node.node_id,
+                data={'npu_id': npu_id}
+            )
+            self._add_event(compute_done_event)
+            
+            # NPU busy until 업데이트
+            self.npu_busy_until[npu_id] = compute_done_time
+            self.total_compute_time_us += compute_time_us
+    
+    def _schedule_compute(self, node: ComputeNode, start_time_us: float):
         """
         연산 스케줄링 (Transfer → Compute 분리)
         
         Args:
             node: 실행할 노드
-            start_time_ns: 스케줄링 시작 시간
+            start_time_us: 스케줄링 시작 시간 (us)
         """
+        # Device type에 따라 분기
+        if node.device_type == "npu":
+            self._schedule_npu_compute(node, start_time_us)
+            return
+        
+        # eFlash Array 연산
         array_id = node.array_id
         area_id = node.area_id
         
         # Transfer는 dependency만 만족하면 시작 (Array busy 무관)
-        transfer_start_time = start_time_ns
+        transfer_start_time = start_time_us
         
         # 입력 데이터 전송 시간 계산
-        transfer_time_ns = 0.0
+        transfer_time_us = 0.0
         transfer_details = []  # 전송 상세 정보 저장
         
         for input_node_id in node.input_nodes:
@@ -234,66 +408,66 @@ class InferenceScheduler:
                         'buffer_id': buffer_id,
                         'location': optimal_location,
                         'size_bytes': lifetime['buffer'].size_bytes,
-                        'time_ns': 0.0
+                        'time_us': 0.0
                     })
                 else:
                     # Shared SRAM에서 읽기 → 전송 시간 발생
                     xfer_time = self._calculate_transfer_time(lifetime['buffer'].size_bytes)
-                    transfer_time_ns += xfer_time
+                    transfer_time_us += xfer_time
                     transfer_details.append({
                         'buffer_id': buffer_id,
                         'location': optimal_location,
                         'size_bytes': lifetime['buffer'].size_bytes,
-                        'time_ns': xfer_time
+                        'time_us': xfer_time
                     })
         
-        if transfer_time_ns > 0:
+        if transfer_time_us > 0:
             # Transfer 시간이 있으면 Transfer 이벤트 생성
             
             # 1. TRANSFER_START 이벤트 (Array busy 무관, dependency만 체크)
             transfer_start_event = Event(
-                time_ns=transfer_start_time,
+                time_us=transfer_start_time,
                 event_type=EventType.TRANSFER_START,
                 node_id=node.node_id,
                 data={
                     'array_id': array_id,
                     'area_id': area_id,
-                    'transfer_time_ns': transfer_time_ns,
+                    'transfer_time_us': transfer_time_us,
                     'details': transfer_details
                 }
             )
             self._add_event(transfer_start_event)
             
             # 2. TRANSFER_DONE 이벤트 (Compute 시작 트리거)
-            transfer_done_time = transfer_start_time + transfer_time_ns
+            transfer_done_time = transfer_start_time + transfer_time_us
             transfer_done_event = Event(
-                time_ns=transfer_done_time,
+                time_us=transfer_done_time,
                 event_type=EventType.TRANSFER_DONE,
                 node_id=node.node_id,
                 data={
                     'array_id': array_id,
                     'area_id': area_id,
-                    'transfer_time_ns': transfer_time_ns,
+                    'transfer_time_us': transfer_time_us,
                     'details': transfer_details
                 }
             )
             self._add_event(transfer_done_event)
             
             # 통계: 전송 시간 누적
-            self.total_transfer_time_ns += transfer_time_ns
+            self.total_transfer_time_us += transfer_time_us
         else:
             # Transfer 시간이 0이면 (내부 SRAM만 사용) 바로 Compute 시작
             
             # 전송 상세 로깅 (내부 SRAM 사용 표시)
             for detail in transfer_details:
-                print(f"  [Transfer] {node.node_id} reads {detail['buffer_id']} from {detail['location']} ({detail['time_ns']:.2f} ns)")
+                print(f"  [Transfer] {node.node_id} reads {detail['buffer_id']} from {detail['location']} ({detail['time_us']:.2f} us)")
             
             # Compute 시작 시간: Array available time 체크
             array_available_time = self.array_busy_until.get(array_id, 0.0)
             compute_start_time = max(transfer_start_time, array_available_time)
             
             compute_start_event = Event(
-                time_ns=compute_start_time,
+                time_us=compute_start_time,
                 event_type=EventType.COMPUTE_START,
                 node_id=node.node_id,
                 data={'array_id': array_id, 'area_id': area_id}
@@ -301,15 +475,20 @@ class InferenceScheduler:
             self._add_event(compute_start_event)
             
             # 연산 실행 시간
-            array = self.pim.get_array(array_id)
-            compute_time_ns = array.area_execution_time_ns
+            if node.node_type in ["concat", "add", "maxpool", "upsample"]:
+                # 경량 연산들: eFlash array에서 즉시 처리 (시간 0)
+                compute_time_us = 0.0
+            else:
+                # 일반 연산 (conv 등)
+                array = self.pim.get_array(array_id)
+                compute_time_us = array.area_execution_time_us
             
             # 연산 완료 시간
-            compute_done_time = compute_start_time + compute_time_ns
+            compute_done_time = compute_start_time + compute_time_us
             
             # 연산 완료 이벤트
             compute_done_event = Event(
-                time_ns=compute_done_time,
+                time_us=compute_done_time,
                 event_type=EventType.COMPUTE_DONE,
                 node_id=node.node_id,
                 data={'array_id': array_id, 'area_id': area_id}
@@ -320,7 +499,7 @@ class InferenceScheduler:
             self.array_busy_until[array_id] = compute_done_time
             
             # 통계 업데이트
-            self.total_compute_time_ns += compute_time_ns
+            self.total_compute_time_us += compute_time_us
         
         # 노드를 running 상태로 표시 (Transfer 시작 시점 = dependency 완료 시점)
         node.mark_running(transfer_start_time)
@@ -340,11 +519,11 @@ class InferenceScheduler:
             return
         
         # 전송 시작 시간 기록
-        node.transfer_start_time = event.time_ns
+        node.transfer_start_time = event.time_us
         
         # 전송 상세 정보 출력
         for detail in event.data['details']:
-            print(f"  [Transfer] {node_id} reads {detail['buffer_id']} from {detail['location']} ({detail['time_ns']:.2f} ns)")
+            print(f"  [Transfer] {node_id} reads {detail['buffer_id']} from {detail['location']} ({detail['time_us']:.2f} us)")
     
     def _handle_transfer_done(self, event: Event):
         """
@@ -360,53 +539,91 @@ class InferenceScheduler:
             return
         
         # 전송 완료 시간 기록
-        node.transfer_done_time = event.time_ns
+        node.transfer_done_time = event.time_us
         
         # 전송 시간 계산
-        transfer_time_ns = event.data['transfer_time_ns']
+        transfer_time_us = event.data['transfer_time_us']
         
-        # 전송 완료 후 연산 시작
-        array_id = event.data['array_id']
-        area_id = event.data['area_id']
-        
-        # Array가 사용 가능한 시간
-        array_available_time = self.array_busy_until.get(array_id, 0.0)
-        actual_start_time = max(event.time_ns, array_available_time)
-        
-        # 연산 시작 이벤트
-        compute_start_event = Event(
-            time_ns=actual_start_time,
-            event_type=EventType.COMPUTE_START,
-            node_id=node_id,
-            data={'array_id': array_id, 'area_id': area_id}
-        )
-        self._add_event(compute_start_event)
-        
-        # 연산 실행 시간
-        array = self.pim.get_array(array_id)
-        compute_time_ns = array.area_execution_time_ns
-        
-        # 연산 완료 시간
-        compute_done_time = actual_start_time + compute_time_ns
-        
-        # 연산 완료 이벤트
-        compute_done_event = Event(
-            time_ns=compute_done_time,
-            event_type=EventType.COMPUTE_DONE,
-            node_id=node_id,
-            data={'array_id': array_id, 'area_id': area_id}
-        )
-        self._add_event(compute_done_event)
-        
-        # Array busy 시간 업데이트
-        self.array_busy_until[array_id] = compute_done_time
+        # Device type에 따라 분기
+        if node.device_type == "npu":
+            # NPU 연산
+            npu_id = event.data['npu_id']
+            npu = self.pim.get_npu(npu_id)
+            
+            npu_available_time = self.npu_busy_until.get(npu_id, 0.0)
+            actual_start_time = max(event.time_us, npu_available_time)
+            
+            # FLOP 계산
+            flops = self._calculate_flops(node)
+            compute_time_us = npu.calculate_execution_time(flops)
+            
+            compute_start_event = Event(
+                time_us=actual_start_time,
+                event_type=EventType.COMPUTE_START,
+                node_id=node_id,
+                data={'npu_id': npu_id, 'flops': flops, 'compute_time_us': compute_time_us}
+            )
+            self._add_event(compute_start_event)
+            
+            compute_done_time = actual_start_time + compute_time_us
+            compute_done_event = Event(
+                time_us=compute_done_time,
+                event_type=EventType.COMPUTE_DONE,
+                node_id=node_id,
+                data={'npu_id': npu_id}
+            )
+            self._add_event(compute_done_event)
+            
+            self.npu_busy_until[npu_id] = compute_done_time
+            self.running_npu_nodes[node.node_id] = npu_id
+        else:
+            # eFlash Array 연산
+            array_id = event.data['array_id']
+            area_id = event.data['area_id']
+            
+            # Array가 사용 가능한 시간
+            array_available_time = self.array_busy_until.get(array_id, 0.0)
+            actual_start_time = max(event.time_us, array_available_time)
+            
+            # 연산 시작 이벤트
+            compute_start_event = Event(
+                time_us=actual_start_time,
+                event_type=EventType.COMPUTE_START,
+                node_id=node_id,
+                data={'array_id': array_id, 'area_id': area_id}
+            )
+            self._add_event(compute_start_event)
+            
+            # 연산 실행 시간
+            if node.node_type == "concat":
+                compute_time_us = 0.01  # Concat: 매우 짧음
+            elif node.node_type == "add":
+                compute_time_us = 0.1  # Elementwise add
+            else:
+                array = self.pim.get_array(array_id)
+                compute_time_us = array.area_execution_time_us
+            
+            # 연산 완료 시간
+            compute_done_time = actual_start_time + compute_time_us
+            
+            # 연산 완료 이벤트
+            compute_done_event = Event(
+                time_us=compute_done_time,
+                event_type=EventType.COMPUTE_DONE,
+                node_id=node_id,
+                data={'array_id': array_id, 'area_id': area_id}
+            )
+            self._add_event(compute_done_event)
+            
+            # Array busy 시간 업데이트
+            self.array_busy_until[array_id] = compute_done_time
+            self.running_nodes[node.node_id] = (array_id, area_id)
         
         # 노드 상태 업데이트
         node.mark_running(actual_start_time)
-        self.running_nodes[node.node_id] = (array_id, area_id)
         
         # 통계 업데이트
-        self.total_compute_time_ns += compute_time_ns
+        self.total_compute_time_us += compute_time_us
     
     def _handle_compute_start(self, event: Event):
         """
@@ -422,10 +639,10 @@ class InferenceScheduler:
             return
         
         # 연산 시작 시간 기록
-        node.compute_start_time = event.time_ns
+        node.compute_start_time = event.time_us
         
         # 로깅 (선택적)
-        # print(f"  [Compute] {node_id} starts at {event.time_ns:.2f} ns")
+        # print(f"  [Compute] {node_id} starts at {event.time_us:.2f} us")
     
     def _handle_compute_done(self, event: Event):
         """
@@ -441,7 +658,7 @@ class InferenceScheduler:
             return
         
         # 노드 완료 처리
-        node.mark_done(event.time_ns)
+        node.mark_done(event.time_us)
         self.completed_nodes.add(node_id)
         self.graph.record_execution(node_id)  # 실행 순서 기록
         if node_id in self.running_nodes:
@@ -519,20 +736,20 @@ class InferenceScheduler:
                     print(f"    ✓ Allocated to {location} ({activation_buffer.size_bytes/1024:.1f} KB) for {location_consumers}")
         
         # 다음 실행 가능한 노드들 스케줄링
-        self._schedule_ready_nodes(event.time_ns)
+        self._schedule_ready_nodes(event.time_us)
     
-    def _schedule_ready_nodes(self, current_time_ns: float):
+    def _schedule_ready_nodes(self, current_time_us: float):
         """
         현재 시점에서 실행 가능한 노드들 스케줄링
         
         Args:
-            current_time_ns: 현재 시간
+            current_time_us: 현재 시간
         """
         ready_nodes = self.graph.get_ready_nodes(self.completed_nodes)
         
         for node in ready_nodes:
             if node.node_id not in self.running_nodes:
-                self._schedule_compute(node, current_time_ns)
+                self._schedule_compute(node, current_time_us)
     
     def run_inference(self, input_batch_size: int, input_shape: Tuple[int, ...]) -> Dict:
         """
@@ -552,9 +769,9 @@ class InferenceScheduler:
         self.array_busy_until = {i: 0.0 for i in range(self.pim.num_arrays)}
         self.completed_nodes.clear()
         self.running_nodes.clear()
-        self.current_time_ns = 0.0
-        self.total_compute_time_ns = 0.0
-        self.total_transfer_time_ns = 0.0
+        self.current_time_us = 0.0
+        self.total_compute_time_us = 0.0
+        self.total_transfer_time_us = 0.0
         self.timeline.clear()
         
         # 개선: Activation lifetime 초기화
@@ -569,7 +786,7 @@ class InferenceScheduler:
         
         # 시작 이벤트
         start_event = Event(
-            time_ns=0.0,
+            time_us=0.0,
             event_type=EventType.INFERENCE_START,
             data={'batch_size': input_batch_size, 'input_shape': input_shape}
         )
@@ -593,7 +810,7 @@ class InferenceScheduler:
         # 이벤트 처리 루프
         while self.event_queue:
             event = heapq.heappop(self.event_queue)
-            self.current_time_ns = event.time_ns
+            self.current_time_us = event.time_us
             
             if event.event_type == EventType.TRANSFER_START:
                 self._handle_transfer_start(event)
@@ -607,7 +824,7 @@ class InferenceScheduler:
         
         # 종료 이벤트
         end_event = Event(
-            time_ns=self.current_time_ns,
+            time_us=self.current_time_us,
             event_type=EventType.INFERENCE_DONE,
             data={'total_nodes': len(self.graph.nodes)}
         )
@@ -615,9 +832,9 @@ class InferenceScheduler:
         
         # 결과 반환
         return {
-            'total_time_ns': self.current_time_ns,
-            'total_compute_time_ns': self.total_compute_time_ns,
-            'total_transfer_time_ns': self.total_transfer_time_ns,
+            'total_time_us': self.current_time_us,
+            'total_compute_time_us': self.total_compute_time_us,
+            'total_transfer_time_us': self.total_transfer_time_us,
             'completed_nodes': len(self.completed_nodes),
             'total_nodes': len(self.graph.nodes),
             'deallocated_count': self.deallocated_count,
@@ -637,9 +854,9 @@ class InferenceScheduler:
         print("INFERENCE TIMELINE")
         print("=" * 80)
         for event in self.timeline:
-            print(f"[{event.time_ns:10.2f}ns] {event.event_type.value:20s} {event.node_id or ''}")
+            print(f"[{event.time_us:10.2f}us] {event.event_type.value:20s} {event.node_id or ''}")
         print("=" * 80)
     
     def __repr__(self):
         return (f"InferenceScheduler(nodes={len(self.graph.nodes)}, "
-                f"current_time={self.current_time_ns}ns)")
+                f"current_time={self.current_time_us}us)")

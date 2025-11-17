@@ -10,12 +10,12 @@ class eFlashArray:
     
     def __init__(self, 
                  array_id: int = 0, 
-                 area_execution_time_ns: float = 100.0,
+                 area_execution_time_us: float = 1.5,
                  sram_size_bytes: int = 1024 * 1024):  # 기본 1MB
         """
         Args:
             array_id: eFlash Array 식별자
-            area_execution_time_ns: Area 하나를 실행하는데 걸리는 시간 (nanoseconds)
+            area_execution_time_us: Area 하나를 실행하는데 걸리는 시간 (microseconds)
             sram_size_bytes: 내부 SRAM 크기 (bytes)
         """
         self.array_id = array_id
@@ -23,8 +23,8 @@ class eFlashArray:
         self.sram = SRAMBuffer(size_bytes=sram_size_bytes, name=f"eFlash_{array_id}_SRAM")
         
         self.current_active_area: Optional[int] = None
-        self.area_execution_time_ns = area_execution_time_ns  # Area 1회 실행 시간
-        self.total_execution_time_ns = 0.0  # 총 실행 시간
+        self.area_execution_time_us = area_execution_time_us  # Area 1회 실행 시간 (us)
+        self.total_execution_time_us = 0.0  # 총 실행 시간 (us)
         self.execution_count = 0  # 실행 횟수
     
     def place_weight(self, 
@@ -74,69 +74,9 @@ class eFlashArray:
         
         return False, None
     
-    def execute_area(self, area_id: int) -> Dict:
-        """
-        특정 Area 실행 (area_execution_time_ns만큼 소요)
-        해당 Area의 모든 tile에 대해 reduction 완료
-        
-        Args:
-            area_id: 실행할 Area ID
-            
-        Returns:
-            실행 결과 (tile별 output shape 등)
-        """
-        if area_id < 0 or area_id >= self.NUM_AREAS:
-            raise ValueError(f"Invalid area_id: {area_id}")
-        
-        self.current_active_area = area_id
-        self.total_execution_time_ns += self.area_execution_time_ns
-        self.execution_count += 1
-        
-        area = self.areas[area_id]
-        results = {
-            'area_id': area_id,
-            'execution_time_ns': self.area_execution_time_ns,
-            'total_time_ns': self.total_execution_time_ns,
-            'tiles_executed': []
-        }
-        
-        for tile in area.tiles:
-            # Reduction이 완료되면 output_dim 크기의 결과가 나옴
-            tile_result = {
-                'weight_id': tile.weight_id,
-                'output_shape': (tile.output_dim,),  # Reduction 후 1D 출력
-                'metadata': tile.metadata
-            }
-            results['tiles_executed'].append(tile_result)
-        
-        return results
-    
-    def get_area(self, area_id: int) -> Area:
-        """Area 객체 반환"""
-        if area_id < 0 or area_id >= self.NUM_AREAS:
-            raise ValueError(f"Invalid area_id: {area_id}")
-        return self.areas[area_id]
-    
     def get_sram(self) -> SRAMBuffer:
         """SRAM 객체 반환"""
         return self.sram
-    
-    def get_total_utilization(self) -> Dict:
-        """전체 Array의 사용률 정보 반환"""
-        total_tiles = sum(len(area.tiles) for area in self.areas)
-        utilization_per_area = [area.get_utilization_ratio() for area in self.areas]
-        avg_utilization = sum(utilization_per_area) / len(utilization_per_area) if utilization_per_area else 0.0
-        
-        return {
-            'array_id': self.array_id,
-            'total_tiles': total_tiles,
-            'utilization_per_area': utilization_per_area,
-            'average_utilization': avg_utilization,
-            'total_execution_time_ns': self.total_execution_time_ns,
-            'execution_count': self.execution_count,
-            'area_execution_time_ns': self.area_execution_time_ns,
-            'sram_stats': self.sram.get_stats()
-        }
     
     def clear_all(self):
         """모든 Area 및 SRAM 초기화"""

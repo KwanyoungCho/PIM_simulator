@@ -27,14 +27,6 @@ class ActivationBuffer:
             self.num_elements *= dim
         self.size_bytes = self.num_elements * bytes_per_element
     
-    def get_size_bytes(self) -> int:
-        """버퍼 크기 (bytes) 반환"""
-        return self.size_bytes
-    
-    def get_shape(self) -> Tuple[int, ...]:
-        """Shape 반환"""
-        return self.shape
-    
     def __repr__(self):
         shape_str = "x".join(str(d) for d in self.shape)
         return (f"ActivationBuffer(id={self.buffer_id}, "
@@ -76,17 +68,6 @@ class ActivationManager:
         """노드의 출력 버퍼 등록"""
         self.node_outputs[node_id] = buffer_id
     
-    def get_buffer(self, buffer_id: str) -> Optional[ActivationBuffer]:
-        """버퍼 조회"""
-        return self.buffers.get(buffer_id)
-    
-    def get_node_output_buffer(self, node_id: str) -> Optional[ActivationBuffer]:
-        """노드의 출력 버퍼 조회"""
-        buffer_id = self.node_outputs.get(node_id)
-        if buffer_id:
-            return self.buffers.get(buffer_id)
-        return None
-    
     def allocate_to_sram(self, buffer_id: str, sram_buffer, location_name: str) -> bool:
         """
         SRAM에 버퍼 할당
@@ -108,13 +89,13 @@ class ActivationManager:
         success = sram_buffer.allocate(buffer_id, buffer.size_bytes)
         return success
     
-    def deallocate_from_sram(self, buffer_id: str, sram_buffer) -> bool:
-        """SRAM에서 버퍼 해제"""
-        buffer = self.buffers.get(buffer_id)
-        if not buffer:
-            return False
+    # def deallocate_from_sram(self, buffer_id: str, sram_buffer) -> bool:
+    #     """SRAM에서 버퍼 해제"""
+    #     buffer = self.buffers.get(buffer_id)
+    #     if not buffer:
+    #         return False
         
-        return sram_buffer.deallocate(buffer_id)
+    #     return sram_buffer.deallocate(buffer_id)
     
     def clear(self):
         """모든 버퍼 제거"""

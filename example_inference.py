@@ -6,7 +6,8 @@ Event-driven Inference 시뮬레이션 예제
 from src.pim_simulator import PIMSimulator
 from src.compute_node import ComputeNode, ComputeGraph
 from src.scheduler import InferenceScheduler
-from src.inference_context import InferenceContext, PipelineManager
+from src.inference_context import InferenceContext
+from src.graph_validator import GraphValidator
 
 
 def create_simple_cnn_graph():
@@ -42,7 +43,7 @@ def create_simple_cnn_graph():
         area_id=0,
         weight_tiles=["conv1_w"],
         input_nodes=[],  # 소스 노드
-        input_shape=(224, 224, 3),
+        input_shape=(3, 224, 224),  # CHW: Channels, Height, Width
         output_shape=(64, 112, 112),
         metadata={'kernel': '3x3', 'stride': 2}
     )
@@ -56,7 +57,7 @@ def create_simple_cnn_graph():
         area_id=1,
         weight_tiles=["conv2a_w"],
         input_nodes=["conv1"],
-        input_shape=(64, 112, 112),
+        input_shape=(64, 112, 112),  # CHW
         output_shape=(128, 56, 56),
         metadata={'kernel': '3x3', 'stride': 2}
     )
@@ -70,7 +71,7 @@ def create_simple_cnn_graph():
         area_id=0,
         weight_tiles=["conv2b_w"],
         input_nodes=["conv1"],
-        input_shape=(64, 112, 112),
+        input_shape=(64, 112, 112),  # CHW
         output_shape=(64, 112, 112),
         metadata={'kernel': '1x1', 'stride': 1}
     )
@@ -84,7 +85,7 @@ def create_simple_cnn_graph():
         area_id=1,
         weight_tiles=["conv3_w"],
         input_nodes=["conv2b"],
-        input_shape=(64, 112, 112),
+        input_shape=(64, 112, 112),  # CHW
         output_shape=(128, 56, 56),
         metadata={'kernel': '3x3', 'stride': 2}
     )
@@ -104,19 +105,66 @@ def create_simple_cnn_graph():
     )
     graph.add_node(add1)
     
-    # Conv4: Add 결과 사용
-    conv4 = ComputeNode(
-        node_id="conv4",
+    # Conv4: Add 결과 사용 (Weight tiling 적용)
+    # 256 output channels → 128 + 128로 분할
+    
+    # Conv4 Tile 1: 첫 128 channels
+    conv4_tile1 = ComputeNode(
+        node_id="conv4_tile1",
         node_type="conv",
         array_id=0,
         area_id=2,
-        weight_tiles=["conv4_w"],
+        weight_tiles=["conv4_w_tile1"],
         input_nodes=["add1"],
-        input_shape=(128, 56, 56),
-        output_shape=(256, 28, 28),
-        metadata={'kernel': '3x3', 'stride': 2}
+        input_shape=(128, 56, 56),  # CHW
+        output_shape=(128, 28, 28),  # 128 channels만 생성
+        metadata={'kernel': '3x3', 'stride': 2, 'tile_idx': 0, 'total_tiles': 2}
+    )
+    graph.add_node(conv4_tile1)
+    
+    # Conv4 Tile 2: 나머지 128 channels
+    conv4_tile2 = ComputeNode(
+        node_id="conv4_tile2",
+        node_type="conv",
+        array_id=0,
+        area_id=3,
+        weight_tiles=["conv4_w_tile2"],
+        input_nodes=["add1"],
+        input_shape=(128, 56, 56),  # CHW
+        output_shape=(128, 28, 28),  # 128 channels만 생성
+        metadata={'kernel': '3x3', 'stride': 2, 'tile_idx': 1, 'total_tiles': 2}
+    )
+    graph.add_node(conv4_tile2)
+    
+    # Conv4 Concat: 두 tile 결과 합치기
+    conv4 = ComputeNode(
+        node_id="conv4",
+        node_type="concat",
+        array_id=0,
+        area_id=0,  # Concat은 area 사용 안 함
+        weight_tiles=[],
+        input_nodes=["conv4_tile1", "conv4_tile2"],
+        input_shape=(128, 28, 28),  # CHW: 각 tile의 output
+        output_shape=(256, 28, 28),  # CHW: 합친 결과
+        metadata={'axis': 0}  # Channel axis로 concat
     )
     graph.add_node(conv4)
+    
+    # FC1: Fully Connected (NPU에서 실행)
+    # Input: (256, 28, 28) = 256*28*28 = 200,704 features
+    # Output: 1000 classes
+    fc1 = ComputeNode(
+        node_id="fc1",
+        node_type="fc",
+        device_type="npu",  # NPU에서 실행
+        npu_id=0,
+        weight_tiles=[],  # NPU는 weight tile 사용 안 함
+        input_nodes=["conv4"],
+        input_shape=(200704,),  # Flattened: 256*28*28
+        output_shape=(1000,),
+        metadata={'description': 'classifier'}
+    )
+    graph.add_node(fc1)
     
     return graph
 
@@ -131,21 +179,26 @@ def setup_pim_with_weights(graph: ComputeGraph):
     Returns:
         PIMSimulator
     """
-    # PIM 생성 (2개 Array, 각 Area 실행시간 100ns)
+    # PIM 생성 (2개 Array + 1개 NPU)
     pim = PIMSimulator(
         num_arrays=2,
-        area_execution_time_ns=100.0,
+        num_npus=1,  # NPU 1개 추가
+        area_execution_time_us=1.5,
+        npu_tops=10.0,  # 10 TOPS
         array_sram_size_bytes=2 * 1024 * 1024,  # 2MB
+        npu_sram_size_bytes=2 * 1024 * 1024,  # 2MB
         shared_sram_size_bytes=20 * 1024 * 1024  # 20MB
     )
     
-    # Weight 배치 (그래프 노드 정보 기반)
+    # Weight 배치 (im2col 고려한 실제 shape)
+    # Shape: (output_channels, kernel_h × kernel_w × input_channels)
     weight_placements = [
-        ("conv1_w", 0, 0, (64, 512)),    # Array0, Area0
-        ("conv2a_w", 0, 1, (128, 1024)), # Array0, Area1
-        ("conv2b_w", 1, 0, (64, 256)),   # Array1, Area0
-        ("conv3_w", 1, 1, (128, 1024)),  # Array1, Area1
-        ("conv4_w", 0, 2, (128, 1280)),  # Array0, Area2
+        ("conv1_w", 0, 0, (64, 27)),          # Array0, Area0: 3×3×3 = 27
+        ("conv2a_w", 0, 1, (128, 576)),       # Array0, Area1: 3×3×64 = 576
+        ("conv2b_w", 1, 0, (64, 64)),         # Array1, Area0: 1×1×64 = 64
+        ("conv3_w", 1, 1, (128, 576)),        # Array1, Area1: 3×3×64 = 576
+        ("conv4_w_tile1", 0, 2, (128, 1152)), # Array0, Area2: 3×3×128 = 1152 (Tile 1)
+        ("conv4_w_tile2", 0, 3, (128, 1152)), # Array0, Area3: 3×3×128 = 1152 (Tile 2)
     ]
     
     print("\n[Weight 배치]")
@@ -182,32 +235,39 @@ def main():
     print("\n[2. PIM 시뮬레이터 설정]")
     pim = setup_pim_with_weights(graph)
     
-    # 3. 스케줄러 생성
-    print("\n[3. 스케줄러 생성]")
+    # 3. Graph Validation
+    print("\n[3. Graph Validation]")
+    validator = GraphValidator(graph, pim)
+    if not validator.validate():
+        print("\n⚠️  Validation failed! Please fix errors before running inference.")
+        return
+    
+    # 4. 스케줄러 생성
+    print("\n[4. 스케줄러 생성]")
     scheduler = InferenceScheduler(
         pim_simulator=pim,
         compute_graph=graph,
-        shared_sram_bandwidth_gbps=10.0  # 10 GB/s
+        shared_sram_bandwidth_kb_per_us=3.2  # 3.2 KB/us
     )
     print(f"✓ 스케줄러 생성 완료: {scheduler}")
     
-    # 4. 단일 Inference 실행
-    print("\n[4. Inference 실행]")
+    # 5. 단일 Inference 실행
+    print("\n[5. Inference 실행]")
     print("-" * 80)
     
     context = InferenceContext(
         context_id="inference_0",
         scheduler=scheduler,
         input_batch_size=1,
-        input_shape=(224, 224, 3)
+        input_shape=(3, 224, 224)  # CHW: Channels, Height, Width
     )
     
     result = context.execute()
     
     print(f"\n실행 완료!")
-    print(f"  - 총 실행 시간: {result['total_time_ns']:.2f} ns ({result['total_time_ns']/1e6:.4f} ms)")
-    print(f"  - 연산 시간: {result['total_compute_time_ns']:.2f} ns")
-    print(f"  - 전송 시간: {result['total_transfer_time_ns']:.2f} ns")
+    print(f"  - 총 실행 시간: {result['total_time_us']:.2f} us ({result['total_time_us']/1e3:.4f} ms)")
+    print(f"  - 연산 시간: {result['total_compute_time_us']:.2f} us")
+    print(f"  - 전송 시간: {result['total_transfer_time_us']:.2f} us")
     print(f"  - 완료된 노드: {result['completed_nodes']}/{result['total_nodes']}")
     print(f"\n[메모리 관리 개선]")
     print(f"  - 해제된 activation: {result['deallocated_count']}")
@@ -224,8 +284,8 @@ def main():
             node = graph.get_node(node_id)
             if node:
                 exec_time = node.get_execution_time()
-                print(f"  {i}. {node_id:10s}: {node.start_time_ns:8.2f}ns ~ {node.end_time_ns:8.2f}ns "
-                      f"(duration: {exec_time:.2f}ns) [Array{node.array_id}]")
+                print(f"  {i}. {node_id:10s}: {node.start_time_us:8.2f}us ~ {node.end_time_us:8.2f}us "
+                      f"(duration: {exec_time:.2f}us) [Array{node.array_id}]")
     else:
         print("  (실행 순서 정보 없음)")
     
@@ -262,31 +322,6 @@ def main():
         print(f"  - Array {i} SRAM: {array_stats['used_bytes']/1024:.2f} KB / "
               f"{array_stats['total_size_bytes']/1024/1024:.2f} MB "
               f"({array_stats['utilization']:.2%})")
-    
-    # 9. Pipeline 시뮬레이션 (여러 입력)
-    print("\n" + "=" * 80)
-    print("PIPELINE SIMULATION (3 consecutive inferences)")
-    print("=" * 80)
-    
-    pipeline = PipelineManager(scheduler)
-    
-    # 3개의 inference 추가
-    for i in range(3):
-        pipeline.add_inference(
-            context_id=f"inference_{i}",
-            input_batch_size=1,
-            input_shape=(224, 224, 3)
-        )
-    
-    # 순차 실행
-    pipeline_results = pipeline.run_sequential()
-    
-    print(f"\n파이프라인 완료!")
-    pipeline_stats = pipeline.get_stats()
-    print(f"  - 완료된 inference: {pipeline_stats['completed_contexts']}")
-    print(f"  - 평균 레이턴시: {pipeline_stats['average_latency_ns']:.2f} ns "
-          f"({pipeline_stats['average_latency_ns']/1e6:.4f} ms)")
-    print(f"  - 처리량: {pipeline_stats['throughput_per_sec']:.2f} inferences/sec")
     
     print("\n" + "=" * 80)
     print("시뮬레이션 완료!")

@@ -29,13 +29,9 @@ class WeightTile:
         """Weight shape 반환"""
         return (self.output_dim, self.reduction_dim)
     
-    def get_position(self) -> Tuple[int, int]:
-        """Area 내 위치 반환"""
-        return (self.start_row, self.end_row)
-    
-    def get_num_elements(self) -> int:
-        """전체 element 수 반환"""
-        return self.output_dim * self.reduction_dim
+    # def get_position(self) -> Tuple[int, int]:
+    #     """Area 내 위치 반환"""
+    #     return (self.start_row, self.end_row)
     
     def __repr__(self):
         return (f"WeightTile(id={self.weight_id}, "

@@ -7,8 +7,10 @@ class ComputeNode:
     def __init__(self,
                  node_id: str,
                  node_type: str,
-                 array_id: int,
-                 area_id: int,
+                 array_id: Optional[int] = None,
+                 area_id: Optional[int] = None,
+                 device_type: str = "eflash",
+                 npu_id: Optional[int] = None,
                  weight_tiles: List[str] = None,
                  input_nodes: List[str] = None,
                  input_shape: Tuple[int, ...] = None,
@@ -17,9 +19,11 @@ class ComputeNode:
         """
         Args:
             node_id: 노드 ID (예: "conv1", "add2")
-            node_type: 노드 타입 ("conv", "add", "residual", etc.)
-            array_id: weight가 배치된 eFlash Array ID
-            area_id: weight가 배치된 Area ID
+            node_type: 노드 타입 ("conv", "add", "fc", etc.)
+            array_id: weight가 배치된 eFlash Array ID (device_type="eflash"일 때)
+            area_id: weight가 배치된 Area ID (device_type="eflash"일 때)
+            device_type: 실행 장치 타입 ("eflash" or "npu")
+            npu_id: NPU ID (device_type="npu"일 때)
             weight_tiles: 사용하는 weight tile ID 리스트
             input_nodes: 입력 노드 ID 리스트 (dependencies)
             input_shape: 입력 shape
@@ -28,8 +32,10 @@ class ComputeNode:
         """
         self.node_id = node_id
         self.node_type = node_type
+        self.device_type = device_type
         self.array_id = array_id
         self.area_id = area_id
+        self.npu_id = npu_id
         self.weight_tiles = weight_tiles or []
         self.input_nodes = input_nodes or []
         self.input_shape = input_shape
@@ -40,41 +46,28 @@ class ComputeNode:
         self.is_ready = False
         self.is_running = False
         self.is_done = False
-        self.start_time_ns = None
-        self.end_time_ns = None
-    
-    def add_dependency(self, input_node_id: str):
-        """입력 노드(dependency) 추가"""
-        if input_node_id not in self.input_nodes:
-            self.input_nodes.append(input_node_id)
-    
-    def get_dependencies(self) -> List[str]:
-        """의존성 노드 리스트 반환"""
-        return self.input_nodes.copy()
+        self.start_time_us = None
+        self.end_time_us = None
     
     def has_dependencies(self) -> bool:
         """의존성이 있는지 확인"""
         return len(self.input_nodes) > 0
     
-    def mark_ready(self):
-        """실행 준비 완료 표시"""
-        self.is_ready = True
-    
-    def mark_running(self, start_time_ns: float):
+    def mark_running(self, start_time_us: float):
         """실행 중 표시"""
         self.is_running = True
-        self.start_time_ns = start_time_ns
+        self.start_time_us = start_time_us
     
-    def mark_done(self, end_time_ns: float):
+    def mark_done(self, end_time_us: float):
         """실행 완료 표시"""
         self.is_running = False
         self.is_done = True
-        self.end_time_ns = end_time_ns
+        self.end_time_us = end_time_us
     
     def get_execution_time(self) -> Optional[float]:
         """실행 시간 반환 (ns)"""
-        if self.start_time_ns is not None and self.end_time_ns is not None:
-            return self.end_time_ns - self.start_time_ns
+        if self.start_time_us is not None and self.end_time_us is not None:
+            return self.end_time_us - self.start_time_us
         return None
     
     def reset(self):
@@ -82,18 +75,8 @@ class ComputeNode:
         self.is_ready = False
         self.is_running = False
         self.is_done = False
-        self.start_time_ns = None
-        self.end_time_ns = None
-    
-    def get_output_size_bytes(self, bytes_per_element: int = 1) -> int:
-        """출력 activation 크기 (bytes) 계산"""
-        if not self.output_shape:
-            return 0
-        
-        num_elements = 1
-        for dim in self.output_shape:
-            num_elements *= dim
-        return num_elements * bytes_per_element
+        self.start_time_us = None
+        self.end_time_us = None
     
     def __repr__(self):
         deps_str = ",".join(self.input_nodes) if self.input_nodes else "none"

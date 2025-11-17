@@ -1,43 +1,70 @@
 from typing import List, Dict, Optional, Tuple
 from .eflash_array import eFlashArray
+from .npu import NPU
 from .sram import SRAMBuffer
 
 
 class PIMSimulator:
-    """PIM (Processing-In-Memory) 시뮬레이터 - 여러 eFlash Array + 공유 SRAM"""
+    """PIM (Processing-In-Memory) 시뮬레이터 - eFlash Arrays + NPUs + 공유 SRAM"""
     
     def __init__(self,
                  num_arrays: int = 4,
-                 area_execution_time_ns: float = 100.0,
+                 num_npus: int = 0,
+                 area_execution_time_us: float = 1.5,
+                 npu_tops: float = 10.0,
                  array_sram_size_bytes: int = 1024 * 1024,  # 각 Array의 내부 SRAM: 1MB
+                 npu_sram_size_bytes: int = 2 * 1024 * 1024,  # 각 NPU의 SRAM: 2MB
                  shared_sram_size_bytes: int = 10 * 1024 * 1024):  # 공유 SRAM: 10MB
         """
         Args:
             num_arrays: eFlash Array 개수
-            area_execution_time_ns: 각 Area 실행 시간 (nanoseconds)
+            num_npus: NPU 개수
+            area_execution_time_us: 각 Area 실행 시간 (microseconds)
+            npu_tops: NPU 성능 (TOPS)
             array_sram_size_bytes: 각 eFlash Array 내부 SRAM 크기 (bytes)
+            npu_sram_size_bytes: 각 NPU SRAM 크기 (bytes)
             shared_sram_size_bytes: 공유 SRAM 크기 (bytes)
         """
         self.num_arrays = num_arrays
+        self.num_npus = num_npus
+        
+        # eFlash Arrays
         self.eflash_arrays: List[eFlashArray] = [
             eFlashArray(
                 array_id=i,
-                area_execution_time_ns=area_execution_time_ns,
+                area_execution_time_us=area_execution_time_us,
                 sram_size_bytes=array_sram_size_bytes
             ) for i in range(num_arrays)
         ]
+        
+        # NPUs
+        self.npus: List[NPU] = [
+            NPU(
+                npu_id=i,
+                tops=npu_tops,
+                sram_size_bytes=npu_sram_size_bytes
+            ) for i in range(num_npus)
+        ]
+        
+        # Shared SRAM
         self.shared_sram = SRAMBuffer(
             size_bytes=shared_sram_size_bytes,
             name="Shared_SRAM"
         )
         
-        self.total_execution_time_ns = 0.0
+        self.total_execution_time_us = 0.0
         
     def get_array(self, array_id: int) -> eFlashArray:
         """특정 eFlash Array 반환"""
         if array_id < 0 or array_id >= self.num_arrays:
             raise ValueError(f"Invalid array_id: {array_id}. Must be 0-{self.num_arrays-1}")
         return self.eflash_arrays[array_id]
+    
+    def get_npu(self, npu_id: int) -> NPU:
+        """특정 NPU 반환"""
+        if npu_id < 0 or npu_id >= self.num_npus:
+            raise ValueError(f"Invalid npu_id: {npu_id}. Must be 0-{self.num_npus-1}")
+        return self.npus[npu_id]
     
     def get_shared_sram(self) -> SRAMBuffer:
         """공유 SRAM 반환"""
@@ -86,25 +113,6 @@ class PIMSimulator:
                 return True, array.array_id, area_id
         
         return False, None, None
-    
-    def execute_area(self, array_id: int, area_id: int) -> Dict:
-        """
-        특정 Array의 특정 Area 실행
-        
-        Args:
-            array_id: eFlash Array ID
-            area_id: Area ID
-            
-        Returns:
-            실행 결과
-        """
-        array = self.get_array(array_id)
-        result = array.execute_area(area_id)
-        self.total_execution_time_ns = max(
-            self.total_execution_time_ns,
-            array.total_execution_time_ns
-        )
-        return result
     
     def get_total_stats(self) -> Dict:
         """전체 PIM 시스템 통계"""
