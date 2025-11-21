@@ -27,7 +27,7 @@ class SRAMBuffer:
         """
         return (self.used_bytes + size_bytes) <= self.size_bytes
     
-    def allocate(self, data_name: str, size_bytes: int) -> bool:
+    def allocate(self, data_name: str, size_bytes: int, warn: bool = False) -> bool:
         """
         SRAM에 데이터 할당
         
@@ -39,10 +39,14 @@ class SRAMBuffer:
             할당 성공 여부
         """
         if data_name in self.data_entries:
-            print(f"Warning: {data_name} already exists in SRAM. Overwriting.")
+            if warn:
+                print(f"Warning: {data_name} already exists in SRAM {self.name}. Overwriting.")
             self.deallocate(data_name)
             
         if not self.can_allocate(size_bytes):
+            if warn:
+                print(f"Warning: {self.name} cannot allocate {size_bytes/1024:.2f} KB for {data_name} "
+                      f"(used {self.used_bytes/1024:.2f} KB / total {self.size_bytes/1024:.2f} KB)")
             return False
         
         self.data_entries[data_name] = size_bytes

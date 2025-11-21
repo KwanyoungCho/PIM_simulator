@@ -1,31 +1,34 @@
 """
 PIM Simulator Package
 
-모듈:
-- weight_tile: WeightTile 클래스
-- area: Area 클래스
-- sram: SRAMBuffer 클래스
-- eflash_array: eFlashArray 클래스
-- npu: NPU 클래스
-- pim_simulator: PIMSimulator 클래스 (최상위)
-- event: Event, EventType 클래스
-- activation: ActivationBuffer, ActivationManager 클래스
-- compute_node: ComputeNode, ComputeGraph 클래스
-- scheduler: InferenceScheduler 클래스
-- inference_context: InferenceContext 클래스
+서브패키지:
+- hardware: HW 리소스 및 PIM 시뮬레이터
+- graph: ComputeGraph 및 전처리/검증
+- scheduler: 이벤트 스케줄러, 컨텍스트
 """
 
-from .weight_tile import WeightTile
-from .area import Area
-from .sram import SRAMBuffer
-from .eflash_array import eFlashArray
-from .npu import NPU
-from .pim_simulator import PIMSimulator
-from .event import Event, EventType
-from .activation import ActivationBuffer, ActivationManager
-from .compute_node import ComputeNode, ComputeGraph
-from .scheduler import InferenceScheduler
-from .inference_context import InferenceContext
+from .hardware import (
+    WeightTile,
+    Area,
+    SRAMBuffer,
+    eFlashArray,
+    NPU,
+    PIMSimulator,
+)
+from .scheduler import (
+    Event,
+    EventType,
+    ActivationBuffer,
+    ActivationManager,
+    InferenceScheduler,
+    InferenceContext,
+)
+from .graph import (
+    ComputeNode,
+    ComputeGraph,
+    GraphPreprocessor,
+    GraphValidator,
+)
 
 __all__ = [
     'WeightTile',
@@ -40,6 +43,8 @@ __all__ = [
     'ActivationManager',
     'ComputeNode',
     'ComputeGraph',
+    'GraphPreprocessor',
+    'GraphValidator',
     'InferenceScheduler',
     'InferenceContext'
 ]

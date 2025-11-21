@@ -1,0 +1,1120 @@
+================================================================================
+YOLOv8s Inference Simulation
+================================================================================
+
+[1/4] Creating YOLOv8s graph...
+  - Total nodes: 81
+  - Conv nodes: 62
+
+[2/4] Setting up PIM simulator...
+
+[PIM 시뮬레이터 설정]
+  - eFlash Arrays: 20
+  - NPUs: 0
+  - Area execution time: 1.5 us
+
+[Weight Tile 배치 계획]
+======================================================================
+YOLOv8s Weight Tile Assignment
+======================================================================
+Area constraints: MAX_OUTPUT_DIM=128, MAX_REDUCTION_DIM=1280
+Total arrays: 20, Areas per array: 8
+
+Total Conv nodes: 62
+
+  🔀 backbone_conv4: 256×1152 → 2×1 tiles (out dim)
+  🔀 backbone_c2f_3_final: 256×512 → 2×1 tiles (out dim)
+  🔀 backbone_conv5: 512×2304 → 4×2 tiles (out+red dim)
+  🔀 backbone_c2f_4_path1: 256×512 → 2×1 tiles (out dim)
+  🔀 backbone_c2f_4_path2_conv1: 256×512 → 2×1 tiles (out dim)
+  🔀 backbone_c2f_4_bn0_conv1: 256×2304 → 2×2 tiles (out+red dim)
+  🔀 backbone_c2f_4_bn0_conv2: 256×2304 → 2×2 tiles (out+red dim)
+  🔀 backbone_c2f_4_final: 512×768 → 4×1 tiles (out dim)
+  🔀 backbone_sppf_conv1: 256×512 → 2×1 tiles (out dim)
+  🔀 backbone_sppf_conv2: 512×1024 → 4×1 tiles (out dim)
+  🔀 neck_c2f_5_final: 256×384 → 2×1 tiles (out dim)
+  🔀 neck_c2f_7_final: 256×384 → 2×1 tiles (out dim)
+  🔀 neck_conv2: 256×2304 → 2×2 tiles (out+red dim)
+  🔀 neck_c2f_8_path1: 256×768 → 2×1 tiles (out dim)
+  🔀 neck_c2f_8_path2_conv1: 256×768 → 2×1 tiles (out dim)
+  🔀 neck_c2f_8_bn0_conv1: 256×2304 → 2×2 tiles (out+red dim)
+  🔀 neck_c2f_8_bn0_conv2: 256×2304 → 2×2 tiles (out+red dim)
+  🔀 neck_c2f_8_final: 512×768 → 4×1 tiles (out dim)
+  🔀 head_p4_conv1: 256×2304 → 2×2 tiles (out+red dim)
+  🔀 head_p4_conv2: 128×2304 → 1×2 tiles (red dim)
+  🔀 head_p5_conv1: 512×4608 → 4×4 tiles (out+red dim)
+  🔀 head_p5_conv2: 256×4608 → 2×4 tiles (out+red dim)
+
+======================================================================
+Weight Tile Placement Summary
+======================================================================
+Total tiles created: 128
+Total Conv nodes: 62
+
+
+📦 Array 0
+  Area 0 (7 tiles, red=1115/1280): backbone_conv1(32×27), backbone_conv2(64×288), backbone_c2f_1_path1(32×64), backbone_c2f_1_path2_conv1(32×64), backbone_c2f_1_bn0_conv1(32×288), backbone_c2f_1_bn0_conv2(32×288), backbone_c2f_1_final(64×96)
+  Area 1 (1 tiles, red=576/1280): backbone_conv3(128×576)
+  Area 2 (5 tiles, red=1984/1280): backbone_c2f_2_path1(64×128), backbone_c2f_2_path2_conv1(64×128), backbone_c2f_2_bn0_conv1(64×576), backbone_c2f_2_bn0_conv2(64×576), backbone_c2f_2_bn1_conv1(64×576)
+  Area 3 (1 tiles, red=576/1280): backbone_c2f_2_bn1_conv2(64×576)
+  Area 4 (1 tiles, red=256/1280): backbone_c2f_2_final(128×256)
+  Area 5 (1 tiles, red=1152/1280): backbone_conv4[0_r0](128×1152)
+  Area 6 (1 tiles, red=1152/1280): backbone_conv4[1_r0](128×1152)
+  Area 7 (2 tiles, red=512/1280): backbone_c2f_3_path1(128×256), backbone_c2f_3_path2_conv1(128×256)
+
+📦 Array 1
+  Area 0 (1 tiles, red=1152/1280): backbone_c2f_3_bn0_conv1(128×1152)
+  Area 1 (1 tiles, red=1152/1280): backbone_c2f_3_bn0_conv2(128×1152)
+  Area 2 (1 tiles, red=1152/1280): backbone_c2f_3_bn1_conv1(128×1152)
+  Area 3 (1 tiles, red=1152/1280): backbone_c2f_3_bn1_conv2(128×1152)
+  Area 4 (2 tiles, red=1024/1280): backbone_c2f_3_final[0_r0](128×512), backbone_c2f_3_final[1_r0](128×512)
+  Area 5 (1 tiles, red=1280/1280): backbone_conv5[0_r0](128×1280)
+  Area 6 (1 tiles, red=1024/1280): backbone_conv5[0_r1](128×1024)
+  Area 7 (1 tiles, red=1280/1280): backbone_conv5[1_r0](128×1280)
+
+📦 Array 2
+  Area 0 (1 tiles, red=1024/1280): backbone_conv5[1_r1](128×1024)
+  Area 1 (1 tiles, red=1280/1280): backbone_conv5[2_r0](128×1280)
+  Area 2 (1 tiles, red=1024/1280): backbone_conv5[2_r1](128×1024)
+  Area 3 (1 tiles, red=1280/1280): backbone_conv5[3_r0](128×1280)
+  Area 4 (1 tiles, red=1024/1280): backbone_conv5[3_r1](128×1024)
+  Area 5 (2 tiles, red=1024/1280): backbone_c2f_4_path1[0_r0](128×512), backbone_c2f_4_path1[1_r0](128×512)
+  Area 6 (2 tiles, red=1024/1280): backbone_c2f_4_path2_conv1[0_r0](128×512), backbone_c2f_4_path2_conv1[1_r0](128×512)
+  Area 7 (1 tiles, red=1280/1280): backbone_c2f_4_bn0_conv1[0_r0](128×1280)
+
+📦 Array 3
+  Area 0 (1 tiles, red=1024/1280): backbone_c2f_4_bn0_conv1[0_r1](128×1024)
+  Area 1 (1 tiles, red=1280/1280): backbone_c2f_4_bn0_conv1[1_r0](128×1280)
+  Area 2 (1 tiles, red=1024/1280): backbone_c2f_4_bn0_conv1[1_r1](128×1024)
+  Area 3 (1 tiles, red=1280/1280): backbone_c2f_4_bn0_conv2[0_r0](128×1280)
+  Area 4 (1 tiles, red=1024/1280): backbone_c2f_4_bn0_conv2[0_r1](128×1024)
+  Area 5 (1 tiles, red=1280/1280): backbone_c2f_4_bn0_conv2[1_r0](128×1280)
+  Area 6 (1 tiles, red=1024/1280): backbone_c2f_4_bn0_conv2[1_r1](128×1024)
+  Area 7 (1 tiles, red=768/1280): backbone_c2f_4_final[0_r0](128×768)
+
+📦 Array 4
+  Area 0 (1 tiles, red=768/1280): backbone_c2f_4_final[1_r0](128×768)
+  Area 1 (1 tiles, red=768/1280): backbone_c2f_4_final[2_r0](128×768)
+  Area 2 (2 tiles, red=1280/1280): backbone_c2f_4_final[3_r0](128×768), backbone_sppf_conv1[0_r0](128×512)
+  Area 3 (1 tiles, red=512/1280): backbone_sppf_conv1[1_r0](128×512)
+  Area 4 (1 tiles, red=1024/1280): backbone_sppf_conv2[0_r0](128×1024)
+  Area 5 (1 tiles, red=1024/1280): backbone_sppf_conv2[1_r0](128×1024)
+  Area 6 (1 tiles, red=1024/1280): backbone_sppf_conv2[2_r0](128×1024)
+  Area 7 (1 tiles, red=1024/1280): backbone_sppf_conv2[3_r0](128×1024)
+
+📦 Array 5
+  Area 0 (1 tiles, red=768/1280): neck_c2f_5_path1(128×768)
+  Area 1 (1 tiles, red=768/1280): neck_c2f_5_path2_conv1(128×768)
+  Area 2 (1 tiles, red=1152/1280): neck_c2f_5_bn0_conv1(128×1152)
+  Area 3 (1 tiles, red=1152/1280): neck_c2f_5_bn0_conv2(128×1152)
+  Area 4 (2 tiles, red=768/1280): neck_c2f_5_final[0_r0](128×384), neck_c2f_5_final[1_r0](128×384)
+  Area 5 (4 tiles, red=1920/1280): neck_c2f_6_path1(64×384), neck_c2f_6_path2_conv1(64×384), neck_c2f_6_bn0_conv1(64×576), neck_c2f_6_bn0_conv2(64×576)
+  Area 6 (1 tiles, red=192/1280): neck_c2f_6_final(128×192)
+  Area 7 (1 tiles, red=1152/1280): neck_conv1(128×1152)
+
+📦 Array 6
+  Area 0 (2 tiles, red=768/1280): neck_c2f_7_path1(128×384), neck_c2f_7_path2_conv1(128×384)
+  Area 1 (1 tiles, red=1152/1280): neck_c2f_7_bn0_conv1(128×1152)
+  Area 2 (1 tiles, red=1152/1280): neck_c2f_7_bn0_conv2(128×1152)
+  Area 3 (2 tiles, red=768/1280): neck_c2f_7_final[0_r0](128×384), neck_c2f_7_final[1_r0](128×384)
+  Area 4 (1 tiles, red=1280/1280): neck_conv2[0_r0](128×1280)
+  Area 5 (1 tiles, red=1024/1280): neck_conv2[0_r1](128×1024)
+  Area 6 (1 tiles, red=1280/1280): neck_conv2[1_r0](128×1280)
+  Area 7 (1 tiles, red=1024/1280): neck_conv2[1_r1](128×1024)
+
+📦 Array 7
+  Area 0 (1 tiles, red=768/1280): neck_c2f_8_path1[0_r0](128×768)
+  Area 1 (1 tiles, red=768/1280): neck_c2f_8_path1[1_r0](128×768)
+  Area 2 (1 tiles, red=768/1280): neck_c2f_8_path2_conv1[0_r0](128×768)
+  Area 3 (1 tiles, red=768/1280): neck_c2f_8_path2_conv1[1_r0](128×768)
+  Area 4 (1 tiles, red=1280/1280): neck_c2f_8_bn0_conv1[0_r0](128×1280)
+  Area 5 (1 tiles, red=1024/1280): neck_c2f_8_bn0_conv1[0_r1](128×1024)
+  Area 6 (1 tiles, red=1280/1280): neck_c2f_8_bn0_conv1[1_r0](128×1280)
+  Area 7 (1 tiles, red=1024/1280): neck_c2f_8_bn0_conv1[1_r1](128×1024)
+
+📦 Array 8
+  Area 0 (1 tiles, red=1280/1280): neck_c2f_8_bn0_conv2[0_r0](128×1280)
+  Area 1 (1 tiles, red=1024/1280): neck_c2f_8_bn0_conv2[0_r1](128×1024)
+  Area 2 (1 tiles, red=1280/1280): neck_c2f_8_bn0_conv2[1_r0](128×1280)
+  Area 3 (1 tiles, red=1024/1280): neck_c2f_8_bn0_conv2[1_r1](128×1024)
+  Area 4 (1 tiles, red=768/1280): neck_c2f_8_final[0_r0](128×768)
+  Area 5 (1 tiles, red=768/1280): neck_c2f_8_final[1_r0](128×768)
+  Area 6 (1 tiles, red=768/1280): neck_c2f_8_final[2_r0](128×768)
+  Area 7 (1 tiles, red=768/1280): neck_c2f_8_final[3_r0](128×768)
+
+📦 Array 9
+  Area 0 (1 tiles, red=1152/1280): head_p3_conv1(128×1152)
+  Area 1 (1 tiles, red=1152/1280): head_p3_conv2(64×1152)
+  Area 2 (1 tiles, red=64/1280): head_p3(80×64)
+  Area 3 (1 tiles, red=1280/1280): head_p4_conv1[0_r0](128×1280)
+  Area 4 (1 tiles, red=1024/1280): head_p4_conv1[0_r1](128×1024)
+  Area 5 (1 tiles, red=1280/1280): head_p4_conv1[1_r0](128×1280)
+  Area 6 (1 tiles, red=1024/1280): head_p4_conv1[1_r1](128×1024)
+  Area 7 (1 tiles, red=1280/1280): head_p4_conv2[0_r0](128×1280)
+
+📦 Array 10
+  Area 0 (1 tiles, red=1024/1280): head_p4_conv2[0_r1](128×1024)
+  Area 1 (1 tiles, red=128/1280): head_p4(80×128)
+  Area 2 (1 tiles, red=1280/1280): head_p5_conv1[0_r0](128×1280)
+  Area 3 (1 tiles, red=1280/1280): head_p5_conv1[0_r1](128×1280)
+  Area 4 (1 tiles, red=1280/1280): head_p5_conv1[0_r2](128×1280)
+  Area 5 (1 tiles, red=768/1280): head_p5_conv1[0_r3](128×768)
+  Area 6 (1 tiles, red=1280/1280): head_p5_conv1[1_r0](128×1280)
+  Area 7 (1 tiles, red=1280/1280): head_p5_conv1[1_r1](128×1280)
+
+📦 Array 11
+  Area 0 (1 tiles, red=1280/1280): head_p5_conv1[1_r2](128×1280)
+  Area 1 (1 tiles, red=768/1280): head_p5_conv1[1_r3](128×768)
+  Area 2 (1 tiles, red=1280/1280): head_p5_conv1[2_r0](128×1280)
+  Area 3 (1 tiles, red=1280/1280): head_p5_conv1[2_r1](128×1280)
+  Area 4 (1 tiles, red=1280/1280): head_p5_conv1[2_r2](128×1280)
+  Area 5 (1 tiles, red=768/1280): head_p5_conv1[2_r3](128×768)
+  Area 6 (1 tiles, red=1280/1280): head_p5_conv1[3_r0](128×1280)
+  Area 7 (1 tiles, red=1280/1280): head_p5_conv1[3_r1](128×1280)
+
+📦 Array 12
+  Area 0 (1 tiles, red=1280/1280): head_p5_conv1[3_r2](128×1280)
+  Area 1 (1 tiles, red=768/1280): head_p5_conv1[3_r3](128×768)
+  Area 2 (1 tiles, red=1280/1280): head_p5_conv2[0_r0](128×1280)
+  Area 3 (1 tiles, red=1280/1280): head_p5_conv2[0_r1](128×1280)
+  Area 4 (1 tiles, red=1280/1280): head_p5_conv2[0_r2](128×1280)
+  Area 5 (1 tiles, red=768/1280): head_p5_conv2[0_r3](128×768)
+  Area 6 (1 tiles, red=1280/1280): head_p5_conv2[1_r0](128×1280)
+  Area 7 (1 tiles, red=1280/1280): head_p5_conv2[1_r1](128×1280)
+
+📦 Array 13
+  Area 0 (1 tiles, red=1280/1280): head_p5_conv2[1_r2](128×1280)
+  Area 1 (1 tiles, red=768/1280): head_p5_conv2[1_r3](128×768)
+  Area 2 (1 tiles, red=256/1280): head_p5(80×256)
+
+======================================================================
+
+[그래프에 Weight Tiles 적용]
+
+[PIM Array에 Weight 배치 중...]
+
+✅ Weight 배치 완료: 128 tiles placed, 0 failed
+
+[Weight Tile 검증]
+
+================================================================================
+🔍 GRAPH VALIDATION RESULTS
+================================================================================
+
+⚠️  5 Warning(s):
+  • [Array0.Area4] Rows 0-128: Low reduction utilization (20.0%)
+  • [Array5.Area6] Rows 0-128: Low reduction utilization (15.0%)
+  • [Array9.Area2] Rows 0-80: Low reduction utilization (5.0%)
+  • [Array10.Area1] Rows 0-80: Low reduction utilization (10.0%)
+  • [Array13.Area2] Rows 0-80: Low reduction utilization (20.0%)
+
+📊 Weight Packing Statistics:
+  • High utilization row ranges (>80%): 51
+  • Total wasted reduction dimension: 30181 (~23.6 full columns)
+  • Total wasted output dimension: 304 (~2.4 full areas)
+================================================================================
+
+[3/4] Preprocessing graph...
+
+[Graph Preprocessing] Expanding tiled nodes to sub-graph...
+  Found 22 tiled nodes
+[Graph Preprocessing] Complete! Graph now has 191 nodes
+  - Expanded nodes: 191
+
+[4/4] Running inference...
+
+================================================================================
+📊 Inference Results
+================================================================================
+Total time: 8.07 ms
+  - Compute time: 0.19 ms
+  - Transfer time: 5.06 ms
+Throughput: 123.93 FPS
+Completed nodes: 191 / 191
+
+================================================================================
+⏱️  NODE EXECUTION TIMELINE
+================================================================================
+
+Node                                               | Start (us) |   End (us) |   Transfer |        R/W (us) |    Compute |      Total | Location  
+------------------------------------------------------------------------------------------------------------------------------------------------------
+input                                              |       0.00 |       1.50 |       0.00 | -               |       0.00 |       0.00 | Arr0.A0   
+backbone_conv1                                     |       1.50 |       3.00 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_conv2                                     |       3.00 |       4.50 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_c2f_1_path1                               |       4.50 |       6.00 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_c2f_1_path2_conv1                         |       6.00 |       7.50 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_c2f_1_bn0_conv1                           |       7.50 |       9.00 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_c2f_1_bn0_conv2                           |       9.00 |      10.50 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_c2f_1_concat                              |      10.50 |      10.51 |       0.00 | -               |       0.01 |       0.01 | Arr0.A0   
+backbone_c2f_1_final                               |      10.51 |      12.01 |       0.00 | -               |       1.50 |       1.50 | Arr0.A0   
+backbone_conv3                                     |      12.01 |      13.51 |       0.00 | -               |       1.50 |       1.50 | Arr0.A1   
+backbone_c2f_2_path1                               |      13.51 |      15.01 |       0.00 | -               |       1.50 |       1.50 | Arr0.A2   
+backbone_c2f_2_path2_conv1                         |      15.01 |      16.51 |       0.00 | -               |       1.50 |       1.50 | Arr0.A2   
+backbone_c2f_2_bn0_conv1                           |      16.51 |      18.01 |       0.00 | -               |       1.50 |       1.50 | Arr0.A2   
+backbone_c2f_2_bn0_conv2                           |      18.01 |      19.51 |       0.00 | -               |       1.50 |       1.50 | Arr0.A2   
+backbone_c2f_2_bn1_conv1                           |      19.51 |      21.01 |       0.00 | -               |       1.50 |       1.50 | Arr0.A2   
+backbone_c2f_2_bn1_conv2                           |      21.01 |      22.51 |       0.00 | -               |       1.50 |       1.50 | Arr0.A3   
+backbone_c2f_2_concat                              |      22.51 |      22.52 |       0.00 | -               |       0.01 |       0.01 | Arr0.A0   
+backbone_c2f_2_final                               |      22.52 |     274.02 |     250.00 | R0.0 / W250.0   |       1.50 |     251.50 | Arr0.A4   
+[TILE] backbone_conv4_tile0                        |      24.02 |      25.52 |       0.00 | -               |       1.50 |       1.50 | Arr0.A5   
+[TILE] backbone_conv4_tile1                        |      25.52 |      27.02 |       0.00 | -               |       1.50 |       1.50 | Arr0.A6   
+[P-CONCAT] backbone_conv4_concat                   |      27.02 |      27.03 |       0.00 | -               |       0.01 |       0.01 | Arr0.A6   
+backbone_c2f_3_path1                               |      27.03 |     336.52 |      62.50 | R0.0 / W62.5    |       1.50 |     309.49 | Arr0.A7   
+backbone_c2f_3_path2_conv1                         |      28.53 |     399.02 |      62.50 | R0.0 / W62.5    |       1.50 |     370.49 | Arr0.A7   
+backbone_c2f_3_bn0_conv1                           |     399.02 |     463.02 |      62.50 | R62.5 / W0.0    |       1.50 |      64.00 | Arr1.A0   
+backbone_c2f_3_bn0_conv2                           |     463.02 |     464.52 |       0.00 | -               |       1.50 |       1.50 | Arr1.A1   
+backbone_c2f_3_bn1_conv1                           |     464.52 |     466.02 |       0.00 | -               |       1.50 |       1.50 | Arr1.A2   
+backbone_c2f_3_bn1_conv2                           |     466.02 |     467.52 |       0.00 | -               |       1.50 |       1.50 | Arr1.A3   
+backbone_c2f_3_concat                              |     467.52 |     530.03 |      62.50 | R62.5 / W0.0    |       0.01 |      62.51 | Arr1.A0   
+[TILE] backbone_c2f_3_final_tile0                  |     530.03 |     531.53 |       0.00 | -               |       1.50 |       1.50 | Arr1.A4   
+[TILE] backbone_c2f_3_final_tile1                  |     531.53 |     533.03 |       0.00 | -               |       1.50 |       1.50 | Arr1.A4   
+[P-CONCAT] backbone_c2f_3_final_concat             |     533.03 |     658.04 |     125.00 | R0.0 / W125.0   |       0.01 |     125.01 | Arr1.A4   
+[TILE] backbone_conv5_tile0                        |     533.04 |     534.54 |       0.00 | -               |       1.50 |       1.50 | Arr1.A5   
+[TILE] backbone_conv5_tile1                        |     534.54 |     536.04 |       0.00 | -               |       1.50 |       1.50 | Arr1.A6   
+[TILE] backbone_conv5_tile2                        |     536.04 |    1298.67 |      15.62 | R0.0 / W15.6    |       1.50 |     762.63 | Arr1.A7   
+[REDUCE] backbone_conv5_reduce_o0                  |     537.54 |    1314.29 |      15.62 | R0.0 / W15.6    |       0.01 |     776.75 | Arr1.A6   
+[TILE] backbone_conv5_tile3                        |     658.04 |     784.54 |     125.00 | R125.0 / W0.0   |       1.50 |     126.50 | Arr2.A0   
+[TILE] backbone_conv5_tile4                        |     783.04 |     786.04 |       0.00 | -               |       1.50 |       3.00 | Arr2.A1   
+[TILE] backbone_conv5_tile5                        |     908.04 |     909.54 |       0.00 | -               |       1.50 |       1.50 | Arr2.A2   
+[REDUCE] backbone_conv5_reduce_o2                  |     909.54 |     909.55 |       0.00 | -               |       0.01 |       0.01 | Arr2.A2   
+[TILE] backbone_conv5_tile6                        |    1033.04 |    1034.54 |       0.00 | -               |       1.50 |       1.50 | Arr2.A3   
+[TILE] backbone_conv5_tile7                        |    1158.04 |    1159.54 |       0.00 | -               |       1.50 |       1.50 | Arr2.A4   
+[REDUCE] backbone_conv5_reduce_o3                  |    1159.54 |    1159.55 |       0.00 | -               |       0.01 |       0.01 | Arr2.A4   
+[REDUCE] backbone_conv5_reduce_o1                  |    1314.29 |    1329.93 |      15.62 | R15.6 / W0.0    |       0.01 |      15.63 | Arr2.A0   
+[P-CONCAT] backbone_conv5_concat                   |    1329.93 |    1345.56 |      15.62 | R15.6 / W0.0    |       0.01 |      15.63 | Arr2.A4   
+[TILE] backbone_c2f_4_path1_tile0                  |    1345.56 |    1347.06 |       0.00 | -               |       1.50 |       1.50 | Arr2.A5   
+[TILE] backbone_c2f_4_path1_tile1                  |    1347.06 |    1348.56 |       0.00 | -               |       1.50 |       1.50 | Arr2.A5   
+[TILE] backbone_c2f_4_path2_conv1_tile0            |    1348.56 |    1350.06 |       0.00 | -               |       1.50 |       1.50 | Arr2.A6   
+[TILE] backbone_c2f_4_path2_conv1_tile1            |    1350.06 |    1351.56 |       0.00 | -               |       1.50 |       1.50 | Arr2.A6   
+[P-CONCAT] backbone_c2f_4_path1_concat             |    1351.56 |    1382.82 |      31.25 | R0.0 / W31.2    |       0.01 |      31.26 | Arr2.A5   
+[P-CONCAT] backbone_c2f_4_path2_conv1_concat       |    1351.57 |    1414.07 |      31.25 | R0.0 / W31.2    |       0.01 |      62.50 | Arr2.A6   
+[TILE] backbone_c2f_4_bn0_conv1_tile0              |    1351.58 |    1523.45 |      15.62 | R0.0 / W15.6    |       1.50 |     171.87 | Arr2.A7   
+[TILE] backbone_c2f_4_bn0_conv1_tile1              |    1414.07 |    1446.82 |      31.25 | R31.2 / W0.0    |       1.50 |      32.75 | Arr3.A0   
+[TILE] backbone_c2f_4_bn0_conv1_tile2              |    1445.32 |    1448.32 |       0.00 | -               |       1.50 |       3.00 | Arr3.A1   
+[TILE] backbone_c2f_4_bn0_conv1_tile3              |    1476.57 |    1478.07 |       0.00 | -               |       1.50 |       1.50 | Arr3.A2   
+[REDUCE] backbone_c2f_4_bn0_conv1_reduce_o1        |    1478.07 |    1478.08 |       0.00 | -               |       0.01 |       0.01 | Arr3.A2   
+[REDUCE] backbone_c2f_4_bn0_conv1_reduce_o0        |    1523.45 |    1539.08 |      15.62 | R15.6 / W0.0    |       0.01 |      15.63 | Arr3.A0   
+[P-CONCAT] backbone_c2f_4_bn0_conv1_concat         |    1539.08 |    1539.09 |       0.00 | -               |       0.01 |       0.01 | Arr3.A2   
+[TILE] backbone_c2f_4_bn0_conv2_tile0              |    1539.09 |    1540.59 |       0.00 | -               |       1.50 |       1.50 | Arr3.A3   
+[TILE] backbone_c2f_4_bn0_conv2_tile1              |    1540.59 |    1542.09 |       0.00 | -               |       1.50 |       1.50 | Arr3.A4   
+[TILE] backbone_c2f_4_bn0_conv2_tile2              |    1542.09 |    1543.59 |       0.00 | -               |       1.50 |       1.50 | Arr3.A5   
+[TILE] backbone_c2f_4_bn0_conv2_tile3              |    1543.59 |    1545.09 |       0.00 | -               |       1.50 |       1.50 | Arr3.A6   
+[REDUCE] backbone_c2f_4_bn0_conv2_reduce_o0        |    1545.09 |    1545.10 |       0.00 | -               |       0.01 |       0.01 | Arr3.A4   
+[REDUCE] backbone_c2f_4_bn0_conv2_reduce_o1        |    1545.10 |    1545.11 |       0.00 | -               |       0.01 |       0.01 | Arr3.A6   
+[P-CONCAT] backbone_c2f_4_bn0_conv2_concat         |    1545.11 |    1545.12 |       0.00 | -               |       0.01 |       0.01 | Arr3.A6   
+backbone_c2f_4_concat                              |    1545.12 |    1670.13 |     125.00 | R31.2 / W93.8   |       0.01 |     125.01 | Arr3.A0   
+[TILE] backbone_c2f_4_final_tile0                  |    1576.38 |    1967.01 |      15.62 | R0.0 / W15.6    |       1.50 |     390.63 | Arr3.A7   
+[TILE] backbone_c2f_4_final_tile1                  |    1670.13 |    1765.38 |      93.75 | R93.8 / W0.0    |       1.50 |      95.25 | Arr4.A0   
+[TILE] backbone_c2f_4_final_tile2                  |    1763.88 |    1766.88 |       0.00 | -               |       1.50 |       3.00 | Arr4.A1   
+[TILE] backbone_c2f_4_final_tile3                  |    1857.63 |    1859.13 |       0.00 | -               |       1.50 |       1.50 | Arr4.A2   
+[P-CONCAT] backbone_c2f_4_final_concat             |    1967.01 |    1982.64 |      15.62 | R15.6 / W0.0    |       0.01 |      15.63 | Arr4.A2   
+[TILE] backbone_sppf_conv1_tile0                   |    1982.64 |    1984.14 |       0.00 | -               |       1.50 |       1.50 | Arr4.A2   
+[TILE] backbone_sppf_conv1_tile1                   |    1984.14 |    1985.64 |       0.00 | -               |       1.50 |       1.50 | Arr4.A3   
+[P-CONCAT] backbone_sppf_conv1_concat              |    1985.64 |    1985.65 |       0.00 | -               |       0.01 |       0.01 | Arr4.A3   
+backbone_sppf_pool1                                |    1985.65 |    1985.66 |       0.00 | -               |       0.01 |       0.01 | Arr4.A0   
+backbone_sppf_pool2                                |    1985.66 |    1985.67 |       0.00 | -               |       0.01 |       0.01 | Arr4.A0   
+backbone_sppf_pool3                                |    1985.67 |    1985.68 |       0.00 | -               |       0.01 |       0.01 | Arr4.A0   
+backbone_sppf_concat                               |    1985.68 |    1985.69 |       0.00 | -               |       0.01 |       0.01 | Arr4.A0   
+[TILE] backbone_sppf_conv2_tile0                   |    1985.69 |    1987.19 |       0.00 | -               |       1.50 |       1.50 | Arr4.A4   
+[TILE] backbone_sppf_conv2_tile1                   |    1987.19 |    1988.69 |       0.00 | -               |       1.50 |       1.50 | Arr4.A5   
+[TILE] backbone_sppf_conv2_tile2                   |    1988.69 |    1990.19 |       0.00 | -               |       1.50 |       1.50 | Arr4.A6   
+[TILE] backbone_sppf_conv2_tile3                   |    1990.19 |    1991.69 |       0.00 | -               |       1.50 |       1.50 | Arr4.A7   
+[P-CONCAT] backbone_sppf_conv2_concat              |    1991.69 |    2054.20 |      62.50 | R0.0 / W62.5    |       0.01 |      62.51 | Arr4.A7   
+neck_up1                                           |    1991.70 |    1991.71 |       0.00 | -               |       0.01 |       0.01 | Arr4.A0   
+neck_concat1                                       |    2054.20 |    2554.21 |     500.00 | R125.0 / W375.0 |       0.01 |     500.01 | Arr4.A0   
+neck_c2f_5_path1                                   |    2554.21 |    2930.71 |     375.00 | R375.0 / W0.0   |       1.50 |     376.50 | Arr5.A0   
+neck_c2f_5_path2_conv1                             |    2929.21 |    2932.21 |       0.00 | -               |       1.50 |       3.00 | Arr5.A1   
+neck_c2f_5_bn0_conv1                               |    2932.21 |    2933.71 |       0.00 | -               |       1.50 |       1.50 | Arr5.A2   
+neck_c2f_5_bn0_conv2                               |    2933.71 |    2935.21 |       0.00 | -               |       1.50 |       1.50 | Arr5.A3   
+neck_c2f_5_concat                                  |    2935.21 |    2935.22 |       0.00 | -               |       0.01 |       0.01 | Arr5.A0   
+[TILE] neck_c2f_5_final_tile0                      |    2935.22 |    2936.72 |       0.00 | -               |       1.50 |       1.50 | Arr5.A4   
+[TILE] neck_c2f_5_final_tile1                      |    2936.72 |    2938.22 |       0.00 | -               |       1.50 |       1.50 | Arr5.A4   
+[P-CONCAT] neck_c2f_5_final_concat                 |    2938.22 |    2938.23 |       0.00 | -               |       0.01 |       0.01 | Arr5.A4   
+neck_up2                                           |    2938.23 |    2938.24 |       0.00 | -               |       0.01 |       0.01 | Arr5.A0   
+neck_concat2                                       |    3304.21 |    3554.22 |     250.00 | R250.0 / W0.0   |       0.01 |     250.01 | Arr5.A0   
+neck_c2f_6_path1                                   |    3554.22 |    3555.72 |       0.00 | -               |       1.50 |       1.50 | Arr5.A5   
+neck_c2f_6_path2_conv1                             |    3555.72 |    3557.22 |       0.00 | -               |       1.50 |       1.50 | Arr5.A5   
+neck_c2f_6_bn0_conv1                               |    3557.22 |    3558.72 |       0.00 | -               |       1.50 |       1.50 | Arr5.A5   
+neck_c2f_6_bn0_conv2                               |    3558.72 |    3560.22 |       0.00 | -               |       1.50 |       1.50 | Arr5.A5   
+neck_c2f_6_concat                                  |    3560.22 |    3560.23 |       0.00 | -               |       0.01 |       0.01 | Arr5.A0   
+neck_c2f_6_final                                   |    3560.23 |    3811.73 |     250.00 | R0.0 / W250.0   |       1.50 |     251.50 | Arr5.A6   
+neck_conv1                                         |    3561.73 |    3563.23 |       0.00 | -               |       1.50 |       1.50 | Arr5.A7   
+neck_concat3                                       |    3563.23 |    4249.23 |     187.50 | R0.0 / W187.5   |       0.01 |     686.00 | Arr5.A0   
+head_p3_conv1                                      |    3811.73 |    4063.23 |     250.00 | R250.0 / W0.0   |       1.50 |     251.50 | Arr9.A0   
+head_p3_conv2                                      |    4063.23 |    4064.73 |       0.00 | -               |       1.50 |       1.50 | Arr9.A1   
+head_p3                                            |    4064.73 |    4066.23 |       0.00 | -               |       1.50 |       1.50 | Arr9.A2   
+neck_c2f_7_path1                                   |    4249.23 |    4438.23 |     187.50 | R187.5 / W0.0   |       1.50 |     189.00 | Arr6.A0   
+neck_c2f_7_path2_conv1                             |    4436.73 |    4439.73 |       0.00 | -               |       1.50 |       3.00 | Arr6.A0   
+neck_c2f_7_bn0_conv1                               |    4439.73 |    4441.23 |       0.00 | -               |       1.50 |       1.50 | Arr6.A1   
+neck_c2f_7_bn0_conv2                               |    4441.23 |    4442.73 |       0.00 | -               |       1.50 |       1.50 | Arr6.A2   
+neck_c2f_7_concat                                  |    4442.73 |    4442.74 |       0.00 | -               |       0.01 |       0.01 | Arr6.A0   
+[TILE] neck_c2f_7_final_tile0                      |    4442.74 |    4444.24 |       0.00 | -               |       1.50 |       1.50 | Arr6.A3   
+[TILE] neck_c2f_7_final_tile1                      |    4444.24 |    4445.74 |       0.00 | -               |       1.50 |       1.50 | Arr6.A3   
+[P-CONCAT] neck_c2f_7_final_concat                 |    4445.74 |    4749.23 |     125.00 | R0.0 / W125.0   |       0.01 |     303.49 | Arr6.A3   
+[TILE] neck_conv2_tile0                            |    4445.75 |    4447.25 |       0.00 | -               |       1.50 |       1.50 | Arr6.A4   
+[TILE] neck_conv2_tile1                            |    4447.25 |    4448.75 |       0.00 | -               |       1.50 |       1.50 | Arr6.A5   
+[TILE] neck_conv2_tile2                            |    4448.75 |    4450.25 |       0.00 | -               |       1.50 |       1.50 | Arr6.A6   
+[TILE] neck_conv2_tile3                            |    4450.25 |    4451.75 |       0.00 | -               |       1.50 |       1.50 | Arr6.A7   
+[REDUCE] neck_conv2_reduce_o0                      |    4451.75 |    4451.76 |       0.00 | -               |       0.01 |       0.01 | Arr6.A5   
+[REDUCE] neck_conv2_reduce_o1                      |    4451.76 |    4451.77 |       0.00 | -               |       0.01 |       0.01 | Arr6.A7   
+[P-CONCAT] neck_conv2_concat                       |    4451.77 |    5280.48 |      31.25 | R0.0 / W31.2    |       0.01 |     828.71 | Arr6.A7   
+[TILE] head_p4_conv1_tile0                         |    4749.23 |    4875.73 |     125.00 | R125.0 / W0.0   |       1.50 |     126.50 | Arr9.A3   
+[TILE] head_p4_conv1_tile1                         |    4874.23 |    4877.23 |       0.00 | -               |       1.50 |       3.00 | Arr9.A4   
+[REDUCE] head_p4_conv1_reduce_o0                   |    4877.23 |    4877.24 |       0.00 | -               |       0.01 |       0.01 | Arr9.A4   
+[TILE] head_p4_conv1_tile2                         |    4999.23 |    5000.73 |       0.00 | -               |       1.50 |       1.50 | Arr9.A5   
+[TILE] head_p4_conv1_tile3                         |    5124.23 |    5125.73 |       0.00 | -               |       1.50 |       1.50 | Arr9.A6   
+[REDUCE] head_p4_conv1_reduce_o1                   |    5125.73 |    5125.74 |       0.00 | -               |       0.01 |       0.01 | Arr9.A6   
+[P-CONCAT] head_p4_conv1_concat                    |    5125.74 |    5499.23 |     125.00 | R0.0 / W125.0   |       0.01 |     373.49 | Arr9.A6   
+[TILE] head_p4_conv2_tile0                         |    5125.75 |    5686.73 |      62.50 | R0.0 / W62.5    |       1.50 |     560.98 | Arr9.A7   
+neck_concat4                                       |    5280.48 |    5780.48 |     187.50 | R93.8 / W93.8   |       0.01 |     500.00 | Arr9.A0   
+[TILE] head_p4_conv2_tile1                         |    5499.23 |    5625.73 |     125.00 | R125.0 / W0.0   |       1.50 |     126.50 | Arr10.A0  
+[TILE] neck_c2f_8_path1_tile0                      |    5780.48 |    5875.73 |      93.75 | R93.8 / W0.0    |       1.50 |      95.25 | Arr7.A0   
+[TILE] neck_c2f_8_path1_tile1                      |    5874.23 |    5877.23 |       0.00 | -               |       1.50 |       3.00 | Arr7.A1   
+[P-CONCAT] neck_c2f_8_path1_concat                 |    5877.23 |    6249.23 |      31.25 | R0.0 / W31.2    |       0.01 |     372.00 | Arr7.A1   
+[TILE] neck_c2f_8_path2_conv1_tile0                |    5967.98 |    5969.48 |       0.00 | -               |       1.50 |       1.50 | Arr7.A2   
+[TILE] neck_c2f_8_path2_conv1_tile1                |    6061.73 |    6063.23 |       0.00 | -               |       1.50 |       1.50 | Arr7.A3   
+[P-CONCAT] neck_c2f_8_path2_conv1_concat           |    6063.23 |    6280.48 |      31.25 | R0.0 / W31.2    |       0.01 |     217.25 | Arr7.A3   
+[TILE] neck_c2f_8_bn0_conv1_tile0                  |    6063.24 |    6064.74 |       0.00 | -               |       1.50 |       1.50 | Arr7.A4   
+[TILE] neck_c2f_8_bn0_conv1_tile1                  |    6064.74 |    6066.24 |       0.00 | -               |       1.50 |       1.50 | Arr7.A5   
+[TILE] neck_c2f_8_bn0_conv1_tile2                  |    6066.24 |    6067.74 |       0.00 | -               |       1.50 |       1.50 | Arr7.A6   
+[TILE] neck_c2f_8_bn0_conv1_tile3                  |    6067.74 |    6069.24 |       0.00 | -               |       1.50 |       1.50 | Arr7.A7   
+[REDUCE] neck_c2f_8_bn0_conv1_reduce_o0            |    6069.24 |    6069.25 |       0.00 | -               |       0.01 |       0.01 | Arr7.A5   
+[REDUCE] neck_c2f_8_bn0_conv1_reduce_o1            |    6069.25 |    6069.26 |       0.00 | -               |       0.01 |       0.01 | Arr7.A7   
+[P-CONCAT] neck_c2f_8_bn0_conv1_concat             |    6069.26 |    6311.73 |      31.25 | R0.0 / W31.2    |       0.01 |     242.47 | Arr7.A7   
+[REDUCE] head_p4_conv2_reduce_o0                   |    6155.48 |    6217.99 |      62.50 | R62.5 / W0.0    |       0.01 |      62.51 | Arr10.A0  
+head_p4                                            |    6217.99 |    6219.49 |       0.00 | -               |       1.50 |       1.50 | Arr10.A1  
+[TILE] neck_c2f_8_bn0_conv2_tile0                  |    6311.73 |    6344.48 |      31.25 | R31.2 / W0.0    |       1.50 |      32.75 | Arr8.A0   
+[TILE] neck_c2f_8_bn0_conv2_tile1                  |    6342.98 |    6345.98 |       0.00 | -               |       1.50 |       3.00 | Arr8.A1   
+[REDUCE] neck_c2f_8_bn0_conv2_reduce_o0            |    6345.98 |    6345.99 |       0.00 | -               |       0.01 |       0.01 | Arr8.A1   
+[TILE] neck_c2f_8_bn0_conv2_tile2                  |    6374.23 |    6375.73 |       0.00 | -               |       1.50 |       1.50 | Arr8.A2   
+[TILE] neck_c2f_8_bn0_conv2_tile3                  |    6405.48 |    6406.98 |       0.00 | -               |       1.50 |       1.50 | Arr8.A3   
+[REDUCE] neck_c2f_8_bn0_conv2_reduce_o1            |    6406.98 |    6406.99 |       0.00 | -               |       0.01 |       0.01 | Arr8.A3   
+[P-CONCAT] neck_c2f_8_bn0_conv2_concat             |    6406.99 |    6407.00 |       0.00 | -               |       0.01 |       0.01 | Arr8.A3   
+neck_c2f_8_concat                                  |    6436.73 |    6499.24 |      62.50 | R62.5 / W0.0    |       0.01 |      62.51 | Arr8.A0   
+[TILE] neck_c2f_8_final_tile0                      |    6499.24 |    6500.74 |       0.00 | -               |       1.50 |       1.50 | Arr8.A4   
+[TILE] neck_c2f_8_final_tile1                      |    6500.74 |    6502.24 |       0.00 | -               |       1.50 |       1.50 | Arr8.A5   
+[TILE] neck_c2f_8_final_tile2                      |    6502.24 |    6503.74 |       0.00 | -               |       1.50 |       1.50 | Arr8.A6   
+[TILE] neck_c2f_8_final_tile3                      |    6503.74 |    6505.24 |       0.00 | -               |       1.50 |       1.50 | Arr8.A7   
+[P-CONCAT] neck_c2f_8_final_concat                 |    6505.24 |    6567.75 |      62.50 | R0.0 / W62.5    |       0.01 |      62.51 | Arr8.A7   
+[TILE] head_p5_conv1_tile0                         |    6567.75 |    6631.75 |      62.50 | R62.5 / W0.0    |       1.50 |      64.00 | Arr10.A2  
+[TILE] head_p5_conv1_tile1                         |    6630.25 |    6633.25 |       0.00 | -               |       1.50 |       3.00 | Arr10.A3  
+[TILE] head_p5_conv1_tile2                         |    6692.75 |    6694.25 |       0.00 | -               |       1.50 |       1.50 | Arr10.A4  
+[TILE] head_p5_conv1_tile3                         |    6755.25 |    6756.75 |       0.00 | -               |       1.50 |       1.50 | Arr10.A5  
+[REDUCE] head_p5_conv1_reduce_o0                   |    6756.75 |    7583.38 |      15.62 | R0.0 / W15.6    |       0.01 |     826.63 | Arr10.A5  
+[TILE] head_p5_conv1_tile4                         |    6817.75 |    7599.00 |      15.62 | R0.0 / W15.6    |       1.50 |     781.25 | Arr10.A6  
+[TILE] head_p5_conv1_tile5                         |    6880.25 |    7614.63 |      15.62 | R0.0 / W15.6    |       1.50 |     734.38 | Arr10.A7  
+[TILE] head_p5_conv1_tile6                         |    6942.75 |    7006.75 |      62.50 | R62.5 / W0.0    |       1.50 |      64.00 | Arr11.A0  
+[TILE] head_p5_conv1_tile7                         |    7005.25 |    7008.25 |       0.00 | -               |       1.50 |       3.00 | Arr11.A1  
+[TILE] head_p5_conv1_tile8                         |    7067.75 |    7069.25 |       0.00 | -               |       1.50 |       1.50 | Arr11.A2  
+[TILE] head_p5_conv1_tile9                         |    7130.25 |    7131.75 |       0.00 | -               |       1.50 |       1.50 | Arr11.A3  
+[TILE] head_p5_conv1_tile10                        |    7192.75 |    7194.25 |       0.00 | -               |       1.50 |       1.50 | Arr11.A4  
+[TILE] head_p5_conv1_tile11                        |    7255.25 |    7256.75 |       0.00 | -               |       1.50 |       1.50 | Arr11.A5  
+[REDUCE] head_p5_conv1_reduce_o2                   |    7256.75 |    7661.50 |      15.62 | R0.0 / W15.6    |       0.01 |     404.75 | Arr11.A5  
+[TILE] head_p5_conv1_tile12                        |    7317.75 |    7677.13 |      15.62 | R0.0 / W15.6    |       1.50 |     359.38 | Arr11.A6  
+[TILE] head_p5_conv1_tile13                        |    7380.25 |    7692.75 |      15.62 | R0.0 / W15.6    |       1.50 |     312.50 | Arr11.A7  
+[TILE] head_p5_conv1_tile14                        |    7442.75 |    7506.75 |      62.50 | R62.5 / W0.0    |       1.50 |      64.00 | Arr12.A0  
+[TILE] head_p5_conv1_tile15                        |    7505.25 |    7508.25 |       0.00 | -               |       1.50 |       3.00 | Arr12.A1  
+[REDUCE] head_p5_conv1_reduce_o1                   |    7614.63 |    7739.63 |      46.88 | R31.2 / W15.6   |       0.01 |     125.00 | Arr11.A1  
+[REDUCE] head_p5_conv1_reduce_o3                   |    7692.75 |    7724.01 |      31.25 | R31.2 / W0.0    |       0.01 |      31.26 | Arr12.A1  
+[P-CONCAT] head_p5_conv1_concat                    |    7739.63 |    7849.01 |     109.38 | R46.9 / W62.5   |       0.01 |     109.39 | Arr12.A1  
+[TILE] head_p5_conv2_tile0                         |    7786.51 |    7788.01 |       0.00 | -               |       1.50 |       1.50 | Arr12.A2  
+[TILE] head_p5_conv2_tile1                         |    7788.01 |    7789.51 |       0.00 | -               |       1.50 |       1.50 | Arr12.A3  
+[TILE] head_p5_conv2_tile2                         |    7789.51 |    7791.01 |       0.00 | -               |       1.50 |       1.50 | Arr12.A4  
+[TILE] head_p5_conv2_tile3                         |    7791.01 |    7792.51 |       0.00 | -               |       1.50 |       1.50 | Arr12.A5  
+[TILE] head_p5_conv2_tile4                         |    7792.51 |    7989.64 |      15.62 | R0.0 / W15.6    |       1.50 |     197.13 | Arr12.A6  
+[TILE] head_p5_conv2_tile5                         |    7794.01 |    8005.26 |      15.62 | R0.0 / W15.6    |       1.50 |     211.25 | Arr12.A7  
+[REDUCE] head_p5_conv2_reduce_o0                   |    7795.51 |    8020.89 |      15.62 | R0.0 / W15.6    |       0.01 |     225.38 | Arr12.A5  
+[TILE] head_p5_conv2_tile6                         |    7849.01 |    7913.01 |      62.50 | R62.5 / W0.0    |       1.50 |      64.00 | Arr13.A0  
+[TILE] head_p5_conv2_tile7                         |    7911.51 |    7914.51 |       0.00 | -               |       1.50 |       3.00 | Arr13.A1  
+[REDUCE] head_p5_conv2_reduce_o1                   |    8020.89 |    8052.15 |      31.25 | R31.2 / W0.0    |       0.01 |      31.26 | Arr13.A1  
+[P-CONCAT] head_p5_conv2_concat                    |    8052.15 |    8067.78 |      15.62 | R15.6 / W0.0    |       0.01 |      15.64 | Arr13.A1  
+head_p5                                            |    8067.78 |    8069.28 |       0.00 | -               |       1.50 |       1.50 | Arr13.A2  
+======================================================================================================================================================
+
+📊 Summary:
+  Total Nodes: 191
+  Total Transfer Time: 5062.50 us (Read 2656.25 / Write 2406.25)
+  Total Compute Time: 194.12 us
+======================================================================================================================================================
+
+================================================================================
+📊 MEMORY ALLOCATION TIMELINE (All Locations)
+================================================================================
+
+ Time (us) |  Type  |    Location     |  Size (KB) | Buffer                                  
+------------------------------------------------------------------------------------------
+      1.50 | 🟢 ALLOC | array_0_sram    |     1200.0 | input_output
+      3.00 | 🔴 FREE  | array_0_sram    |     1200.0 | input_output
+      3.00 | 🟢 ALLOC | array_0_sram    |     3200.0 | backbone_conv1_output
+      4.50 | 🔴 FREE  | array_0_sram    |     3200.0 | backbone_conv1_output
+      4.50 | 🟢 ALLOC | array_0_sram    |     1600.0 | backbone_conv2_output
+      6.00 | 🟢 ALLOC | array_0_sram    |      800.0 | backbone_c2f_1_path1_output
+      7.50 | 🔴 FREE  | array_0_sram    |     1600.0 | backbone_conv2_output
+      7.50 | 🟢 ALLOC | array_0_sram    |      800.0 | backbone_c2f_1_path2_conv1_output
+      9.00 | 🟢 ALLOC | array_0_sram    |      800.0 | backbone_c2f_1_bn0_conv1_output
+     10.50 | 🔴 FREE  | array_0_sram    |      800.0 | backbone_c2f_1_bn0_conv1_output
+     10.50 | 🟢 ALLOC | array_0_sram    |      800.0 | backbone_c2f_1_bn0_conv2_output
+     10.51 | 🔴 FREE  | array_0_sram    |      800.0 | backbone_c2f_1_path1_output
+     10.51 | 🔴 FREE  | array_0_sram    |      800.0 | backbone_c2f_1_path2_conv1_output
+     10.51 | 🔴 FREE  | array_0_sram    |      800.0 | backbone_c2f_1_bn0_conv2_output
+     10.51 | 🟢 ALLOC | array_0_sram    |     2400.0 | backbone_c2f_1_concat_output
+     12.01 | 🔴 FREE  | array_0_sram    |     2400.0 | backbone_c2f_1_concat_output
+     12.01 | 🟢 ALLOC | array_0_sram    |     1600.0 | backbone_c2f_1_final_output
+     13.51 | 🔴 FREE  | array_0_sram    |     1600.0 | backbone_c2f_1_final_output
+     13.51 | 🟢 ALLOC | array_0_sram    |      800.0 | backbone_conv3_output
+     15.01 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_c2f_2_path1_output
+     16.51 | 🔴 FREE  | array_0_sram    |      800.0 | backbone_conv3_output
+     16.51 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_c2f_2_path2_conv1_output
+     18.01 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_c2f_2_bn0_conv1_output
+     19.51 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_c2f_2_bn0_conv1_output
+     19.51 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_c2f_2_bn0_conv2_output
+     21.01 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_c2f_2_bn1_conv1_output
+     22.51 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_c2f_2_bn1_conv1_output
+     22.51 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_c2f_2_bn1_conv2_output
+     22.52 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_c2f_2_path1_output
+     22.52 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_c2f_2_path2_conv1_output
+     22.52 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_c2f_2_bn0_conv2_output
+     22.52 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_c2f_2_bn1_conv2_output
+     22.52 | 🟢 ALLOC | array_0_sram    |     1600.0 | backbone_c2f_2_concat_output
+     24.02 | 🔴 FREE  | array_0_sram    |     1600.0 | backbone_c2f_2_concat_output
+     24.02 | 🟢 ALLOC | array_0_sram    |      800.0 | backbone_c2f_2_final_output
+     25.52 | 🟢 ALLOC | array_0_sram    |      200.0 | backbone_conv4_tile0_output
+     27.02 | 🔴 FREE  | array_0_sram    |      800.0 | backbone_c2f_2_final_output
+     27.02 | 🟢 ALLOC | array_0_sram    |      200.0 | backbone_conv4_tile1_output
+     27.03 | 🔴 FREE  | array_0_sram    |      200.0 | backbone_conv4_tile0_output
+     27.03 | 🔴 FREE  | array_0_sram    |      200.0 | backbone_conv4_tile1_output
+     27.03 | 🟢 ALLOC | array_0_sram    |      400.0 | backbone_conv4_concat_output
+     30.03 | 🔴 FREE  | array_0_sram    |      400.0 | backbone_conv4_concat_output
+------------------------------------------------------------------------------------------
+    274.02 | 🟢 ALLOC | shared_sram     |      800.0 | backbone_c2f_2_final_output
+    336.52 | 🟢 ALLOC | shared_sram     |      200.0 | backbone_c2f_3_path1_output
+    399.02 | 🟢 ALLOC | shared_sram     |      200.0 | backbone_c2f_3_path2_conv1_output
+------------------------------------------------------------------------------------------
+    461.52 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_path2_conv1_output
+    463.02 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_bn0_conv1_output
+    464.52 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_bn0_conv1_output
+    464.52 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_bn0_conv2_output
+    466.02 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_bn1_conv1_output
+    467.52 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_bn1_conv1_output
+    467.52 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_bn1_conv2_output
+    530.02 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_path1_output
+------------------------------------------------------------------------------------------
+    530.03 | 🔴 FREE  | shared_sram     |      200.0 | backbone_c2f_3_path1_output
+------------------------------------------------------------------------------------------
+    530.03 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_path1_output
+------------------------------------------------------------------------------------------
+    530.03 | 🔴 FREE  | shared_sram     |      200.0 | backbone_c2f_3_path2_conv1_output
+------------------------------------------------------------------------------------------
+    530.03 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_path2_conv1_output
+    530.03 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_bn0_conv2_output
+    530.03 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_bn1_conv2_output
+    530.03 | 🟢 ALLOC | array_1_sram    |      800.0 | backbone_c2f_3_concat_output
+    531.53 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_final_tile0_output
+    533.03 | 🔴 FREE  | array_1_sram    |      800.0 | backbone_c2f_3_concat_output
+    533.03 | 🟢 ALLOC | array_1_sram    |      200.0 | backbone_c2f_3_final_tile1_output
+    533.04 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_final_tile0_output
+    533.04 | 🔴 FREE  | array_1_sram    |      200.0 | backbone_c2f_3_final_tile1_output
+    533.04 | 🟢 ALLOC | array_1_sram    |      400.0 | backbone_c2f_3_final_concat_output
+    534.54 | 🟢 ALLOC | array_1_sram    |       50.0 | backbone_conv5_tile0_output
+    536.04 | 🟢 ALLOC | array_1_sram    |       50.0 | backbone_conv5_tile1_output
+    537.54 | 🔴 FREE  | array_1_sram    |      400.0 | backbone_c2f_3_final_concat_output
+    537.55 | 🔴 FREE  | array_1_sram    |       50.0 | backbone_conv5_tile0_output
+    537.55 | 🔴 FREE  | array_1_sram    |       50.0 | backbone_conv5_tile1_output
+------------------------------------------------------------------------------------------
+    658.04 | 🟢 ALLOC | shared_sram     |      400.0 | backbone_c2f_3_final_concat_output
+------------------------------------------------------------------------------------------
+    783.04 | 🟢 ALLOC | array_2_sram    |      400.0 | backbone_c2f_3_final_concat_output
+    784.54 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_tile3_output
+    786.04 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_tile4_output
+    909.54 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_tile5_output
+    909.55 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_tile4_output
+    909.55 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_tile5_output
+    909.55 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_reduce_o2_output
+   1034.54 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_tile6_output
+   1159.54 | 🔴 FREE  | array_2_sram    |      400.0 | backbone_c2f_3_final_concat_output
+   1159.54 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_tile7_output
+   1159.55 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_tile6_output
+   1159.55 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_tile7_output
+   1159.55 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_reduce_o3_output
+------------------------------------------------------------------------------------------
+   1298.67 | 🟢 ALLOC | shared_sram     |       50.0 | backbone_conv5_tile2_output
+   1314.29 | 🟢 ALLOC | shared_sram     |       50.0 | backbone_conv5_reduce_o0_output
+------------------------------------------------------------------------------------------
+   1329.92 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_tile2_output
+------------------------------------------------------------------------------------------
+   1329.93 | 🔴 FREE  | shared_sram     |       50.0 | backbone_conv5_tile2_output
+------------------------------------------------------------------------------------------
+   1329.93 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_tile2_output
+   1329.93 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_tile3_output
+   1329.93 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_reduce_o1_output
+   1345.55 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_conv5_reduce_o0_output
+------------------------------------------------------------------------------------------
+   1345.56 | 🔴 FREE  | shared_sram     |       50.0 | backbone_conv5_reduce_o0_output
+------------------------------------------------------------------------------------------
+   1345.56 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_reduce_o0_output
+   1345.56 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_reduce_o1_output
+   1345.56 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_reduce_o2_output
+   1345.56 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_conv5_reduce_o3_output
+   1345.56 | 🟢 ALLOC | array_2_sram    |      200.0 | backbone_conv5_concat_output
+   1347.06 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_c2f_4_path1_tile0_output
+   1348.56 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_c2f_4_path1_tile1_output
+   1350.06 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_c2f_4_path2_conv1_tile0_output
+   1351.56 | 🔴 FREE  | array_2_sram    |      200.0 | backbone_conv5_concat_output
+   1351.56 | 🟢 ALLOC | array_2_sram    |       50.0 | backbone_c2f_4_path2_conv1_tile1_output
+   1351.57 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_c2f_4_path1_tile0_output
+   1351.57 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_c2f_4_path1_tile1_output
+   1351.58 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_c2f_4_path2_conv1_tile0_output
+   1351.58 | 🔴 FREE  | array_2_sram    |       50.0 | backbone_c2f_4_path2_conv1_tile1_output
+   1351.58 | 🟢 ALLOC | array_2_sram    |      100.0 | backbone_c2f_4_path2_conv1_concat_output
+   1353.08 | 🔴 FREE  | array_2_sram    |      100.0 | backbone_c2f_4_path2_conv1_concat_output
+------------------------------------------------------------------------------------------
+   1382.82 | 🟢 ALLOC | shared_sram     |      100.0 | backbone_c2f_4_path1_concat_output
+   1414.07 | 🟢 ALLOC | shared_sram     |      100.0 | backbone_c2f_4_path2_conv1_concat_output
+------------------------------------------------------------------------------------------
+   1445.32 | 🟢 ALLOC | array_3_sram    |      100.0 | backbone_c2f_4_path2_conv1_concat_output
+   1446.82 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile1_output
+   1448.32 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile2_output
+   1478.07 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile3_output
+   1478.08 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile2_output
+   1478.08 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile3_output
+   1478.08 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_reduce_o1_outpu
+------------------------------------------------------------------------------------------
+   1523.45 | 🟢 ALLOC | shared_sram     |       50.0 | backbone_c2f_4_bn0_conv1_tile0_output
+------------------------------------------------------------------------------------------
+   1539.07 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile0_output
+------------------------------------------------------------------------------------------
+   1539.08 | 🔴 FREE  | shared_sram     |       50.0 | backbone_c2f_4_bn0_conv1_tile0_output
+------------------------------------------------------------------------------------------
+   1539.08 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile0_output
+   1539.08 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_tile1_output
+   1539.08 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_reduce_o0_outpu
+   1539.09 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_reduce_o0_outpu
+   1539.09 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv1_reduce_o1_outpu
+   1539.09 | 🟢 ALLOC | array_3_sram    |      100.0 | backbone_c2f_4_bn0_conv1_concat_output
+   1540.59 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile0_output
+   1542.09 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile1_output
+   1543.59 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile2_output
+   1545.09 | 🔴 FREE  | array_3_sram    |      100.0 | backbone_c2f_4_bn0_conv1_concat_output
+   1545.09 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile3_output
+   1545.10 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile0_output
+   1545.10 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile1_output
+   1545.10 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_reduce_o0_outpu
+   1545.11 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile2_output
+   1545.11 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_tile3_output
+   1545.11 | 🟢 ALLOC | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_reduce_o1_outpu
+   1545.12 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_reduce_o0_outpu
+   1545.12 | 🔴 FREE  | array_3_sram    |       50.0 | backbone_c2f_4_bn0_conv2_reduce_o1_outpu
+   1545.12 | 🟢 ALLOC | array_3_sram    |      100.0 | backbone_c2f_4_bn0_conv2_concat_output
+   1576.37 | 🟢 ALLOC | array_3_sram    |      100.0 | backbone_c2f_4_path1_concat_output
+------------------------------------------------------------------------------------------
+   1576.38 | 🔴 FREE  | shared_sram     |      100.0 | backbone_c2f_4_path1_concat_output
+------------------------------------------------------------------------------------------
+   1576.38 | 🔴 FREE  | array_3_sram    |      100.0 | backbone_c2f_4_path1_concat_output
+------------------------------------------------------------------------------------------
+   1576.38 | 🔴 FREE  | shared_sram     |      100.0 | backbone_c2f_4_path2_conv1_concat_output
+------------------------------------------------------------------------------------------
+   1576.38 | 🔴 FREE  | array_3_sram    |      100.0 | backbone_c2f_4_path2_conv1_concat_output
+   1576.38 | 🔴 FREE  | array_3_sram    |      100.0 | backbone_c2f_4_bn0_conv2_concat_output
+   1576.38 | 🟢 ALLOC | array_3_sram    |      300.0 | backbone_c2f_4_concat_output
+   1577.88 | 🔴 FREE  | array_3_sram    |      300.0 | backbone_c2f_4_concat_output
+------------------------------------------------------------------------------------------
+   1670.13 | 🟢 ALLOC | shared_sram     |      300.0 | backbone_c2f_4_concat_output
+------------------------------------------------------------------------------------------
+   1763.88 | 🟢 ALLOC | array_4_sram    |      300.0 | backbone_c2f_4_concat_output
+   1765.38 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_c2f_4_final_tile1_output
+   1766.88 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_c2f_4_final_tile2_output
+------------------------------------------------------------------------------------------
+   1859.13 | 🔴 FREE  | shared_sram     |      300.0 | backbone_c2f_4_concat_output
+------------------------------------------------------------------------------------------
+   1859.13 | 🔴 FREE  | array_4_sram    |      300.0 | backbone_c2f_4_concat_output
+   1859.13 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_c2f_4_final_tile3_output
+------------------------------------------------------------------------------------------
+   1967.01 | 🟢 ALLOC | shared_sram     |       50.0 | backbone_c2f_4_final_tile0_output
+------------------------------------------------------------------------------------------
+   1982.63 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_c2f_4_final_tile0_output
+------------------------------------------------------------------------------------------
+   1982.64 | 🔴 FREE  | shared_sram     |       50.0 | backbone_c2f_4_final_tile0_output
+------------------------------------------------------------------------------------------
+   1982.64 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_c2f_4_final_tile0_output
+   1982.64 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_c2f_4_final_tile1_output
+   1982.64 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_c2f_4_final_tile2_output
+   1982.64 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_c2f_4_final_tile3_output
+   1982.64 | 🟢 ALLOC | array_4_sram    |      200.0 | backbone_c2f_4_final_concat_output
+   1984.14 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_sppf_conv1_tile0_output
+   1985.64 | 🔴 FREE  | array_4_sram    |      200.0 | backbone_c2f_4_final_concat_output
+   1985.64 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_sppf_conv1_tile1_output
+   1985.65 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_sppf_conv1_tile0_output
+   1985.65 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_sppf_conv1_tile1_output
+   1985.65 | 🟢 ALLOC | array_4_sram    |      100.0 | backbone_sppf_conv1_concat_output
+   1985.66 | 🟢 ALLOC | array_4_sram    |      100.0 | backbone_sppf_pool1_output
+   1985.67 | 🟢 ALLOC | array_4_sram    |      100.0 | backbone_sppf_pool2_output
+   1985.68 | 🟢 ALLOC | array_4_sram    |      100.0 | backbone_sppf_pool3_output
+   1985.69 | 🔴 FREE  | array_4_sram    |      100.0 | backbone_sppf_conv1_concat_output
+   1985.69 | 🔴 FREE  | array_4_sram    |      100.0 | backbone_sppf_pool1_output
+   1985.69 | 🔴 FREE  | array_4_sram    |      100.0 | backbone_sppf_pool2_output
+   1985.69 | 🔴 FREE  | array_4_sram    |      100.0 | backbone_sppf_pool3_output
+   1985.69 | 🟢 ALLOC | array_4_sram    |      400.0 | backbone_sppf_concat_output
+   1987.19 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_sppf_conv2_tile0_output
+   1988.69 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_sppf_conv2_tile1_output
+   1990.19 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_sppf_conv2_tile2_output
+   1991.69 | 🔴 FREE  | array_4_sram    |      400.0 | backbone_sppf_concat_output
+   1991.69 | 🟢 ALLOC | array_4_sram    |       50.0 | backbone_sppf_conv2_tile3_output
+   1991.70 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_sppf_conv2_tile0_output
+   1991.70 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_sppf_conv2_tile1_output
+   1991.70 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_sppf_conv2_tile2_output
+   1991.70 | 🔴 FREE  | array_4_sram    |       50.0 | backbone_sppf_conv2_tile3_output
+   1991.70 | 🟢 ALLOC | array_4_sram    |      200.0 | backbone_sppf_conv2_concat_output
+   1991.71 | 🔴 FREE  | array_4_sram    |      200.0 | backbone_sppf_conv2_concat_output
+   1991.71 | 🟢 ALLOC | array_4_sram    |      800.0 | neck_up1_output
+------------------------------------------------------------------------------------------
+   2054.20 | 🟢 ALLOC | shared_sram     |      200.0 | backbone_sppf_conv2_concat_output
+------------------------------------------------------------------------------------------
+   2179.20 | 🟢 ALLOC | array_4_sram    |      400.0 | backbone_c2f_3_final_concat_output
+   2179.21 | 🔴 FREE  | array_4_sram    |      800.0 | neck_up1_output
+------------------------------------------------------------------------------------------
+   2179.21 | 🔴 FREE  | shared_sram     |      400.0 | backbone_c2f_3_final_concat_output
+------------------------------------------------------------------------------------------
+   2179.21 | 🔴 FREE  | array_4_sram    |      400.0 | backbone_c2f_3_final_concat_output
+------------------------------------------------------------------------------------------
+   2554.21 | 🟢 ALLOC | shared_sram     |     1200.0 | neck_concat1_output
+------------------------------------------------------------------------------------------
+   2929.21 | 🟢 ALLOC | array_5_sram    |     1200.0 | neck_concat1_output
+   2930.71 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_c2f_5_path1_output
+------------------------------------------------------------------------------------------
+   2932.21 | 🔴 FREE  | shared_sram     |     1200.0 | neck_concat1_output
+------------------------------------------------------------------------------------------
+   2932.21 | 🔴 FREE  | array_5_sram    |     1200.0 | neck_concat1_output
+   2932.21 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_c2f_5_path2_conv1_output
+   2933.71 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_c2f_5_bn0_conv1_output
+   2935.21 | 🔴 FREE  | array_5_sram    |      200.0 | neck_c2f_5_bn0_conv1_output
+   2935.21 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_c2f_5_bn0_conv2_output
+   2935.22 | 🔴 FREE  | array_5_sram    |      200.0 | neck_c2f_5_path1_output
+   2935.22 | 🔴 FREE  | array_5_sram    |      200.0 | neck_c2f_5_path2_conv1_output
+   2935.22 | 🔴 FREE  | array_5_sram    |      200.0 | neck_c2f_5_bn0_conv2_output
+   2935.22 | 🟢 ALLOC | array_5_sram    |      600.0 | neck_c2f_5_concat_output
+   2936.72 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_c2f_5_final_tile0_output
+   2938.22 | 🔴 FREE  | array_5_sram    |      600.0 | neck_c2f_5_concat_output
+   2938.22 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_c2f_5_final_tile1_output
+   2938.23 | 🔴 FREE  | array_5_sram    |      200.0 | neck_c2f_5_final_tile0_output
+   2938.23 | 🔴 FREE  | array_5_sram    |      200.0 | neck_c2f_5_final_tile1_output
+   2938.23 | 🟢 ALLOC | array_5_sram    |      400.0 | neck_c2f_5_final_concat_output
+   2938.24 | 🟢 ALLOC | array_5_sram    |     1600.0 | neck_up2_output
+   3554.21 | 🟢 ALLOC | array_5_sram    |      800.0 | backbone_c2f_2_final_output
+   3554.22 | 🔴 FREE  | array_5_sram    |     1600.0 | neck_up2_output
+------------------------------------------------------------------------------------------
+   3554.22 | 🔴 FREE  | shared_sram     |      800.0 | backbone_c2f_2_final_output
+------------------------------------------------------------------------------------------
+   3554.22 | 🔴 FREE  | array_5_sram    |      800.0 | backbone_c2f_2_final_output
+   3554.22 | 🟢 ALLOC | array_5_sram    |     2400.0 | neck_concat2_output
+   3555.72 | 🟢 ALLOC | array_5_sram    |      400.0 | neck_c2f_6_path1_output
+   3557.22 | 🔴 FREE  | array_5_sram    |     2400.0 | neck_concat2_output
+   3557.22 | 🟢 ALLOC | array_5_sram    |      400.0 | neck_c2f_6_path2_conv1_output
+   3558.72 | 🟢 ALLOC | array_5_sram    |      400.0 | neck_c2f_6_bn0_conv1_output
+   3560.22 | 🔴 FREE  | array_5_sram    |      400.0 | neck_c2f_6_bn0_conv1_output
+   3560.22 | 🟢 ALLOC | array_5_sram    |      400.0 | neck_c2f_6_bn0_conv2_output
+   3560.23 | 🔴 FREE  | array_5_sram    |      400.0 | neck_c2f_6_path1_output
+   3560.23 | 🔴 FREE  | array_5_sram    |      400.0 | neck_c2f_6_path2_conv1_output
+   3560.23 | 🔴 FREE  | array_5_sram    |      400.0 | neck_c2f_6_bn0_conv2_output
+   3560.23 | 🟢 ALLOC | array_5_sram    |     1200.0 | neck_c2f_6_concat_output
+   3561.73 | 🔴 FREE  | array_5_sram    |     1200.0 | neck_c2f_6_concat_output
+   3561.73 | 🟢 ALLOC | array_5_sram    |      800.0 | neck_c2f_6_final_output
+   3563.23 | 🔴 FREE  | array_5_sram    |      800.0 | neck_c2f_6_final_output
+   3563.23 | 🟢 ALLOC | array_5_sram    |      200.0 | neck_conv1_output
+   3563.24 | 🔴 FREE  | array_5_sram    |      200.0 | neck_conv1_output
+   3563.24 | 🔴 FREE  | array_5_sram    |      400.0 | neck_c2f_5_final_concat_output
+------------------------------------------------------------------------------------------
+   3811.73 | 🟢 ALLOC | shared_sram     |      800.0 | neck_c2f_6_final_output
+------------------------------------------------------------------------------------------
+   4061.73 | 🟢 ALLOC | array_9_sram    |      800.0 | neck_c2f_6_final_output
+------------------------------------------------------------------------------------------
+   4063.23 | 🔴 FREE  | shared_sram     |      800.0 | neck_c2f_6_final_output
+------------------------------------------------------------------------------------------
+   4063.23 | 🔴 FREE  | array_9_sram    |      800.0 | neck_c2f_6_final_output
+   4063.23 | 🟢 ALLOC | array_9_sram    |      800.0 | head_p3_conv1_output
+   4064.73 | 🔴 FREE  | array_9_sram    |      800.0 | head_p3_conv1_output
+   4064.73 | 🟢 ALLOC | array_9_sram    |      400.0 | head_p3_conv2_output
+   4066.23 | 🔴 FREE  | array_9_sram    |      400.0 | head_p3_conv2_output
+------------------------------------------------------------------------------------------
+   4249.23 | 🟢 ALLOC | shared_sram     |      600.0 | neck_concat3_output
+------------------------------------------------------------------------------------------
+   4436.73 | 🟢 ALLOC | array_6_sram    |      600.0 | neck_concat3_output
+   4438.23 | 🟢 ALLOC | array_6_sram    |      200.0 | neck_c2f_7_path1_output
+------------------------------------------------------------------------------------------
+   4439.73 | 🔴 FREE  | shared_sram     |      600.0 | neck_concat3_output
+------------------------------------------------------------------------------------------
+   4439.73 | 🔴 FREE  | array_6_sram    |      600.0 | neck_concat3_output
+   4439.73 | 🟢 ALLOC | array_6_sram    |      200.0 | neck_c2f_7_path2_conv1_output
+   4441.23 | 🟢 ALLOC | array_6_sram    |      200.0 | neck_c2f_7_bn0_conv1_output
+   4442.73 | 🔴 FREE  | array_6_sram    |      200.0 | neck_c2f_7_bn0_conv1_output
+   4442.73 | 🟢 ALLOC | array_6_sram    |      200.0 | neck_c2f_7_bn0_conv2_output
+   4442.74 | 🔴 FREE  | array_6_sram    |      200.0 | neck_c2f_7_path1_output
+   4442.74 | 🔴 FREE  | array_6_sram    |      200.0 | neck_c2f_7_path2_conv1_output
+   4442.74 | 🔴 FREE  | array_6_sram    |      200.0 | neck_c2f_7_bn0_conv2_output
+   4442.74 | 🟢 ALLOC | array_6_sram    |      600.0 | neck_c2f_7_concat_output
+   4444.24 | 🟢 ALLOC | array_6_sram    |      200.0 | neck_c2f_7_final_tile0_output
+   4445.74 | 🔴 FREE  | array_6_sram    |      600.0 | neck_c2f_7_concat_output
+   4445.74 | 🟢 ALLOC | array_6_sram    |      200.0 | neck_c2f_7_final_tile1_output
+   4445.75 | 🔴 FREE  | array_6_sram    |      200.0 | neck_c2f_7_final_tile0_output
+   4445.75 | 🔴 FREE  | array_6_sram    |      200.0 | neck_c2f_7_final_tile1_output
+   4445.75 | 🟢 ALLOC | array_6_sram    |      400.0 | neck_c2f_7_final_concat_output
+   4447.25 | 🟢 ALLOC | array_6_sram    |       50.0 | neck_conv2_tile0_output
+   4448.75 | 🟢 ALLOC | array_6_sram    |       50.0 | neck_conv2_tile1_output
+   4450.25 | 🟢 ALLOC | array_6_sram    |       50.0 | neck_conv2_tile2_output
+   4451.75 | 🔴 FREE  | array_6_sram    |      400.0 | neck_c2f_7_final_concat_output
+   4451.75 | 🟢 ALLOC | array_6_sram    |       50.0 | neck_conv2_tile3_output
+   4451.76 | 🔴 FREE  | array_6_sram    |       50.0 | neck_conv2_tile0_output
+   4451.76 | 🔴 FREE  | array_6_sram    |       50.0 | neck_conv2_tile1_output
+   4451.76 | 🟢 ALLOC | array_6_sram    |       50.0 | neck_conv2_reduce_o0_output
+   4451.77 | 🔴 FREE  | array_6_sram    |       50.0 | neck_conv2_tile2_output
+   4451.77 | 🔴 FREE  | array_6_sram    |       50.0 | neck_conv2_tile3_output
+   4451.77 | 🟢 ALLOC | array_6_sram    |       50.0 | neck_conv2_reduce_o1_output
+   4451.78 | 🔴 FREE  | array_6_sram    |       50.0 | neck_conv2_reduce_o0_output
+   4451.78 | 🔴 FREE  | array_6_sram    |       50.0 | neck_conv2_reduce_o1_output
+------------------------------------------------------------------------------------------
+   4749.23 | 🟢 ALLOC | shared_sram     |      400.0 | neck_c2f_7_final_concat_output
+------------------------------------------------------------------------------------------
+   4874.23 | 🟢 ALLOC | array_9_sram    |      400.0 | neck_c2f_7_final_concat_output
+   4875.73 | 🟢 ALLOC | array_9_sram    |      200.0 | head_p4_conv1_tile0_output
+   4877.23 | 🟢 ALLOC | array_9_sram    |      200.0 | head_p4_conv1_tile1_output
+   4877.24 | 🔴 FREE  | array_9_sram    |      200.0 | head_p4_conv1_tile0_output
+   4877.24 | 🔴 FREE  | array_9_sram    |      200.0 | head_p4_conv1_tile1_output
+   4877.24 | 🟢 ALLOC | array_9_sram    |      200.0 | head_p4_conv1_reduce_o0_output
+   5000.73 | 🟢 ALLOC | array_9_sram    |      200.0 | head_p4_conv1_tile2_output
+------------------------------------------------------------------------------------------
+   5125.73 | 🔴 FREE  | shared_sram     |      400.0 | neck_c2f_7_final_concat_output
+------------------------------------------------------------------------------------------
+   5125.73 | 🔴 FREE  | array_9_sram    |      400.0 | neck_c2f_7_final_concat_output
+   5125.73 | 🟢 ALLOC | array_9_sram    |      200.0 | head_p4_conv1_tile3_output
+   5125.74 | 🔴 FREE  | array_9_sram    |      200.0 | head_p4_conv1_tile2_output
+   5125.74 | 🔴 FREE  | array_9_sram    |      200.0 | head_p4_conv1_tile3_output
+   5125.74 | 🟢 ALLOC | array_9_sram    |      200.0 | head_p4_conv1_reduce_o1_output
+   5125.75 | 🔴 FREE  | array_9_sram    |      200.0 | head_p4_conv1_reduce_o0_output
+   5125.75 | 🔴 FREE  | array_9_sram    |      200.0 | head_p4_conv1_reduce_o1_output
+   5125.75 | 🟢 ALLOC | array_9_sram    |      400.0 | head_p4_conv1_concat_output
+   5127.25 | 🔴 FREE  | array_9_sram    |      400.0 | head_p4_conv1_concat_output
+------------------------------------------------------------------------------------------
+   5280.48 | 🟢 ALLOC | shared_sram     |      100.0 | neck_conv2_concat_output
+------------------------------------------------------------------------------------------
+   5374.23 | 🟢 ALLOC | array_9_sram    |      100.0 | neck_conv2_concat_output
+   5374.23 | 🟢 ALLOC | array_9_sram    |      200.0 | backbone_sppf_conv2_concat_output
+------------------------------------------------------------------------------------------
+   5374.24 | 🔴 FREE  | shared_sram     |      100.0 | neck_conv2_concat_output
+------------------------------------------------------------------------------------------
+   5374.24 | 🔴 FREE  | array_9_sram    |      100.0 | neck_conv2_concat_output
+------------------------------------------------------------------------------------------
+   5374.24 | 🔴 FREE  | shared_sram     |      200.0 | backbone_sppf_conv2_concat_output
+------------------------------------------------------------------------------------------
+   5374.24 | 🔴 FREE  | array_9_sram    |      200.0 | backbone_sppf_conv2_concat_output
+------------------------------------------------------------------------------------------
+   5499.23 | 🟢 ALLOC | shared_sram     |      400.0 | head_p4_conv1_concat_output
+------------------------------------------------------------------------------------------
+   5624.23 | 🟢 ALLOC | array_10_sram   |      400.0 | head_p4_conv1_concat_output
+------------------------------------------------------------------------------------------
+   5625.73 | 🔴 FREE  | shared_sram     |      400.0 | head_p4_conv1_concat_output
+------------------------------------------------------------------------------------------
+   5625.73 | 🔴 FREE  | array_10_sram   |      400.0 | head_p4_conv1_concat_output
+   5625.73 | 🟢 ALLOC | array_10_sram   |      200.0 | head_p4_conv2_tile1_output
+------------------------------------------------------------------------------------------
+   5686.73 | 🟢 ALLOC | shared_sram     |      200.0 | head_p4_conv2_tile0_output
+   5780.48 | 🟢 ALLOC | shared_sram     |      300.0 | neck_concat4_output
+------------------------------------------------------------------------------------------
+   5874.23 | 🟢 ALLOC | array_7_sram    |      300.0 | neck_concat4_output
+   5875.73 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_path1_tile0_output
+   5877.23 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_path1_tile1_output
+   5877.24 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_path1_tile0_output
+   5877.24 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_path1_tile1_output
+   5969.48 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_path2_conv1_tile0_output
+------------------------------------------------------------------------------------------
+   6063.23 | 🔴 FREE  | shared_sram     |      300.0 | neck_concat4_output
+------------------------------------------------------------------------------------------
+   6063.23 | 🔴 FREE  | array_7_sram    |      300.0 | neck_concat4_output
+   6063.23 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_path2_conv1_tile1_output
+   6063.24 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_path2_conv1_tile0_output
+   6063.24 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_path2_conv1_tile1_output
+   6063.24 | 🟢 ALLOC | array_7_sram    |      100.0 | neck_c2f_8_path2_conv1_concat_output
+   6064.74 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile0_output
+   6066.24 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile1_output
+   6067.74 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile2_output
+   6069.24 | 🔴 FREE  | array_7_sram    |      100.0 | neck_c2f_8_path2_conv1_concat_output
+   6069.24 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile3_output
+   6069.25 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile0_output
+   6069.25 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile1_output
+   6069.25 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_reduce_o0_output
+   6069.26 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile2_output
+   6069.26 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_tile3_output
+   6069.26 | 🟢 ALLOC | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_reduce_o1_output
+   6069.27 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_reduce_o0_output
+   6069.27 | 🔴 FREE  | array_7_sram    |       50.0 | neck_c2f_8_bn0_conv1_reduce_o1_output
+------------------------------------------------------------------------------------------
+   6217.98 | 🟢 ALLOC | array_10_sram   |      200.0 | head_p4_conv2_tile0_output
+------------------------------------------------------------------------------------------
+   6217.99 | 🔴 FREE  | shared_sram     |      200.0 | head_p4_conv2_tile0_output
+------------------------------------------------------------------------------------------
+   6217.99 | 🔴 FREE  | array_10_sram   |      200.0 | head_p4_conv2_tile0_output
+   6217.99 | 🔴 FREE  | array_10_sram   |      200.0 | head_p4_conv2_tile1_output
+   6217.99 | 🟢 ALLOC | array_10_sram   |      200.0 | head_p4_conv2_reduce_o0_output
+   6219.49 | 🔴 FREE  | array_10_sram   |      200.0 | head_p4_conv2_reduce_o0_output
+------------------------------------------------------------------------------------------
+   6249.23 | 🟢 ALLOC | shared_sram     |      100.0 | neck_c2f_8_path1_concat_output
+   6280.48 | 🟢 ALLOC | shared_sram     |      100.0 | neck_c2f_8_path2_conv1_concat_output
+   6311.73 | 🟢 ALLOC | shared_sram     |      100.0 | neck_c2f_8_bn0_conv1_concat_output
+------------------------------------------------------------------------------------------
+   6342.98 | 🟢 ALLOC | array_8_sram    |      100.0 | neck_c2f_8_bn0_conv1_concat_output
+   6344.48 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile0_output
+   6345.98 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile1_output
+   6345.99 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile0_output
+   6345.99 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile1_output
+   6345.99 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_reduce_o0_output
+   6375.73 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile2_output
+------------------------------------------------------------------------------------------
+   6406.98 | 🔴 FREE  | shared_sram     |      100.0 | neck_c2f_8_bn0_conv1_concat_output
+------------------------------------------------------------------------------------------
+   6406.98 | 🔴 FREE  | array_8_sram    |      100.0 | neck_c2f_8_bn0_conv1_concat_output
+   6406.98 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile3_output
+   6406.99 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile2_output
+   6406.99 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_tile3_output
+   6406.99 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_reduce_o1_output
+   6407.00 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_reduce_o0_output
+   6407.00 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_bn0_conv2_reduce_o1_output
+   6407.00 | 🟢 ALLOC | array_8_sram    |      100.0 | neck_c2f_8_bn0_conv2_concat_output
+   6499.23 | 🟢 ALLOC | array_8_sram    |      100.0 | neck_c2f_8_path1_concat_output
+   6499.23 | 🟢 ALLOC | array_8_sram    |      100.0 | neck_c2f_8_path2_conv1_concat_output
+------------------------------------------------------------------------------------------
+   6499.24 | 🔴 FREE  | shared_sram     |      100.0 | neck_c2f_8_path1_concat_output
+------------------------------------------------------------------------------------------
+   6499.24 | 🔴 FREE  | array_8_sram    |      100.0 | neck_c2f_8_path1_concat_output
+------------------------------------------------------------------------------------------
+   6499.24 | 🔴 FREE  | shared_sram     |      100.0 | neck_c2f_8_path2_conv1_concat_output
+------------------------------------------------------------------------------------------
+   6499.24 | 🔴 FREE  | array_8_sram    |      100.0 | neck_c2f_8_path2_conv1_concat_output
+   6499.24 | 🔴 FREE  | array_8_sram    |      100.0 | neck_c2f_8_bn0_conv2_concat_output
+   6499.24 | 🟢 ALLOC | array_8_sram    |      300.0 | neck_c2f_8_concat_output
+   6500.74 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_final_tile0_output
+   6502.24 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_final_tile1_output
+   6503.74 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_final_tile2_output
+   6505.24 | 🔴 FREE  | array_8_sram    |      300.0 | neck_c2f_8_concat_output
+   6505.24 | 🟢 ALLOC | array_8_sram    |       50.0 | neck_c2f_8_final_tile3_output
+   6505.25 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_final_tile0_output
+   6505.25 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_final_tile1_output
+   6505.25 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_final_tile2_output
+   6505.25 | 🔴 FREE  | array_8_sram    |       50.0 | neck_c2f_8_final_tile3_output
+------------------------------------------------------------------------------------------
+   6567.75 | 🟢 ALLOC | shared_sram     |      200.0 | neck_c2f_8_final_concat_output
+------------------------------------------------------------------------------------------
+   6630.25 | 🟢 ALLOC | array_10_sram   |      200.0 | neck_c2f_8_final_concat_output
+   6631.75 | 🟢 ALLOC | array_10_sram   |       50.0 | head_p5_conv1_tile0_output
+   6633.25 | 🟢 ALLOC | array_10_sram   |       50.0 | head_p5_conv1_tile1_output
+   6694.25 | 🟢 ALLOC | array_10_sram   |       50.0 | head_p5_conv1_tile2_output
+   6756.75 | 🟢 ALLOC | array_10_sram   |       50.0 | head_p5_conv1_tile3_output
+   6756.76 | 🔴 FREE  | array_10_sram   |       50.0 | head_p5_conv1_tile0_output
+   6756.76 | 🔴 FREE  | array_10_sram   |       50.0 | head_p5_conv1_tile1_output
+   6756.76 | 🔴 FREE  | array_10_sram   |       50.0 | head_p5_conv1_tile2_output
+   6756.76 | 🔴 FREE  | array_10_sram   |       50.0 | head_p5_conv1_tile3_output
+   6881.75 | 🔴 FREE  | array_10_sram   |      200.0 | neck_c2f_8_final_concat_output
+------------------------------------------------------------------------------------------
+   7005.25 | 🟢 ALLOC | array_11_sram   |      200.0 | neck_c2f_8_final_concat_output
+   7006.75 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile6_output
+   7008.25 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile7_output
+   7069.25 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile8_output
+   7131.75 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile9_output
+   7194.25 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile10_output
+   7256.75 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile11_output
+   7256.76 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile8_output
+   7256.76 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile9_output
+   7256.76 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile10_output
+   7256.76 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile11_output
+   7381.75 | 🔴 FREE  | array_11_sram   |      200.0 | neck_c2f_8_final_concat_output
+------------------------------------------------------------------------------------------
+   7505.25 | 🟢 ALLOC | array_12_sram   |      200.0 | neck_c2f_8_final_concat_output
+   7506.75 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_tile14_output
+------------------------------------------------------------------------------------------
+   7508.25 | 🔴 FREE  | shared_sram     |      200.0 | neck_c2f_8_final_concat_output
+------------------------------------------------------------------------------------------
+   7508.25 | 🔴 FREE  | array_12_sram   |      200.0 | neck_c2f_8_final_concat_output
+   7508.25 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_tile15_output
+------------------------------------------------------------------------------------------
+   7583.38 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_reduce_o0_output
+   7599.00 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_tile4_output
+   7614.63 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_tile5_output
+------------------------------------------------------------------------------------------
+   7645.88 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile4_output
+   7645.88 | 🟢 ALLOC | array_11_sram   |       50.0 | head_p5_conv1_tile5_output
+------------------------------------------------------------------------------------------
+   7645.89 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_tile4_output
+------------------------------------------------------------------------------------------
+   7645.89 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile4_output
+------------------------------------------------------------------------------------------
+   7645.89 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_tile5_output
+------------------------------------------------------------------------------------------
+   7645.89 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile5_output
+   7645.89 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile6_output
+   7645.89 | 🔴 FREE  | array_11_sram   |       50.0 | head_p5_conv1_tile7_output
+------------------------------------------------------------------------------------------
+   7661.50 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_reduce_o2_output
+   7677.13 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_tile12_output
+   7692.75 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_tile13_output
+------------------------------------------------------------------------------------------
+   7724.00 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_tile12_output
+   7724.00 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_tile13_output
+------------------------------------------------------------------------------------------
+   7724.01 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_tile12_output
+------------------------------------------------------------------------------------------
+   7724.01 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_tile12_output
+------------------------------------------------------------------------------------------
+   7724.01 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_tile13_output
+------------------------------------------------------------------------------------------
+   7724.01 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_tile13_output
+   7724.01 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_tile14_output
+   7724.01 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_tile15_output
+   7724.01 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_reduce_o3_output
+------------------------------------------------------------------------------------------
+   7739.63 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv1_reduce_o1_output
+------------------------------------------------------------------------------------------
+   7786.50 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_reduce_o0_output
+   7786.50 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_reduce_o1_output
+   7786.50 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv1_reduce_o2_output
+------------------------------------------------------------------------------------------
+   7786.51 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_reduce_o0_output
+------------------------------------------------------------------------------------------
+   7786.51 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_reduce_o0_output
+------------------------------------------------------------------------------------------
+   7786.51 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_reduce_o1_output
+------------------------------------------------------------------------------------------
+   7786.51 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_reduce_o1_output
+------------------------------------------------------------------------------------------
+   7786.51 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv1_reduce_o2_output
+------------------------------------------------------------------------------------------
+   7786.51 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_reduce_o2_output
+   7786.51 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv1_reduce_o3_output
+   7786.51 | 🟢 ALLOC | array_12_sram   |      200.0 | head_p5_conv1_concat_output
+   7788.01 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv2_tile0_output
+   7789.51 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv2_tile1_output
+   7791.01 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv2_tile2_output
+   7792.51 | 🟢 ALLOC | array_12_sram   |       50.0 | head_p5_conv2_tile3_output
+   7795.51 | 🔴 FREE  | array_12_sram   |      200.0 | head_p5_conv1_concat_output
+   7795.52 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv2_tile0_output
+   7795.52 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv2_tile1_output
+   7795.52 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv2_tile2_output
+   7795.52 | 🔴 FREE  | array_12_sram   |       50.0 | head_p5_conv2_tile3_output
+------------------------------------------------------------------------------------------
+   7849.01 | 🟢 ALLOC | shared_sram     |      200.0 | head_p5_conv1_concat_output
+------------------------------------------------------------------------------------------
+   7911.51 | 🟢 ALLOC | array_13_sram   |      200.0 | head_p5_conv1_concat_output
+   7913.01 | 🟢 ALLOC | array_13_sram   |       50.0 | head_p5_conv2_tile6_output
+------------------------------------------------------------------------------------------
+   7914.51 | 🔴 FREE  | shared_sram     |      200.0 | head_p5_conv1_concat_output
+------------------------------------------------------------------------------------------
+   7914.51 | 🔴 FREE  | array_13_sram   |      200.0 | head_p5_conv1_concat_output
+   7914.51 | 🟢 ALLOC | array_13_sram   |       50.0 | head_p5_conv2_tile7_output
+------------------------------------------------------------------------------------------
+   7989.64 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv2_tile4_output
+   8005.26 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv2_tile5_output
+   8020.89 | 🟢 ALLOC | shared_sram     |       50.0 | head_p5_conv2_reduce_o0_output
+------------------------------------------------------------------------------------------
+   8052.14 | 🟢 ALLOC | array_13_sram   |       50.0 | head_p5_conv2_tile4_output
+   8052.14 | 🟢 ALLOC | array_13_sram   |       50.0 | head_p5_conv2_tile5_output
+------------------------------------------------------------------------------------------
+   8052.15 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv2_tile4_output
+------------------------------------------------------------------------------------------
+   8052.15 | 🔴 FREE  | array_13_sram   |       50.0 | head_p5_conv2_tile4_output
+------------------------------------------------------------------------------------------
+   8052.15 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv2_tile5_output
+------------------------------------------------------------------------------------------
+   8052.15 | 🔴 FREE  | array_13_sram   |       50.0 | head_p5_conv2_tile5_output
+   8052.15 | 🔴 FREE  | array_13_sram   |       50.0 | head_p5_conv2_tile6_output
+   8052.15 | 🔴 FREE  | array_13_sram   |       50.0 | head_p5_conv2_tile7_output
+   8052.15 | 🟢 ALLOC | array_13_sram   |       50.0 | head_p5_conv2_reduce_o1_output
+   8067.77 | 🟢 ALLOC | array_13_sram   |       50.0 | head_p5_conv2_reduce_o0_output
+------------------------------------------------------------------------------------------
+   8067.78 | 🔴 FREE  | shared_sram     |       50.0 | head_p5_conv2_reduce_o0_output
+------------------------------------------------------------------------------------------
+   8067.78 | 🔴 FREE  | array_13_sram   |       50.0 | head_p5_conv2_reduce_o0_output
+   8067.78 | 🔴 FREE  | array_13_sram   |       50.0 | head_p5_conv2_reduce_o1_output
+   8067.78 | 🟢 ALLOC | array_13_sram   |      100.0 | head_p5_conv2_concat_output
+   8069.28 | 🔴 FREE  | array_13_sram   |      100.0 | head_p5_conv2_concat_output
+================================================================================
+
+📈 Statistics (all locations):
+  Total Allocations: 236
+  Total Frees: 236
+  Total Allocated: 61200.0 KB
+================================================================================
+
+================================================================================
+🔁  PARALLEL / OVERLAP ANALYSIS
+================================================================================
+총 중첩 시간: 31.60 us
+  - Compute 병렬: 0.00 us
+  - Transfer 병렬: 0.00 us
+  - Compute↔Transfer 동시: 31.60 us
+
+상세 구간 (길이 순):
+  - 24.02→25.52 us (1.50 us) [compute+transfer]
+  - 25.52→27.02 us (1.50 us) [compute+transfer]
+  - 27.03→28.53 us (1.50 us) [compute+transfer]
+  - 28.53→30.03 us (1.50 us) [compute+transfer]
+  - 533.04→534.54 us (1.50 us) [compute+transfer]
+  - 534.54→536.04 us (1.50 us) [compute+transfer]
+  - 536.04→537.54 us (1.50 us) [compute+transfer]
+  - 1351.58→1353.08 us (1.50 us) [compute+transfer]
+  - 1576.38→1577.88 us (1.50 us) [compute+transfer]
+  - 3561.73→3563.23 us (1.50 us) [compute+transfer]
+  - 4063.23→4064.73 us (1.50 us) [compute+transfer]
+  - 4064.73→4066.23 us (1.50 us) [compute+transfer]
+  - 6217.99→6219.49 us (1.50 us) [compute+transfer]
+  - 7786.51→7788.01 us (1.50 us) [compute+transfer]
+  - 7788.01→7789.51 us (1.50 us) [compute+transfer]
+  - 7789.51→7791.01 us (1.50 us) [compute+transfer]
+  - 7791.01→7792.51 us (1.50 us) [compute+transfer]
+  - 7792.51→7794.01 us (1.50 us) [compute+transfer]
+  - 7794.01→7795.51 us (1.50 us) [compute+transfer]
+  - 4061.73→4063.23 us (1.50 us) [compute+transfer]
+  - 5624.23→5625.73 us (1.50 us) [compute+transfer]
+  - 3563.23→3563.24 us (0.01 us) [compute+transfer]
+  - 7795.51→7795.52 us (0.01 us) [compute+transfer]
+  - 27.02→27.03 us (0.01 us) [compute+transfer]
+  - 537.54→537.55 us (0.01 us) [compute+transfer]
+  - 1351.57→1351.58 us (0.01 us) [compute+transfer]
+  - 1991.70→1991.71 us (0.01 us) [compute+transfer]
+  - 5374.23→5374.24 us (0.01 us) [compute+transfer]
+  - 6217.98→6217.99 us (0.01 us) [compute+transfer]
+  - 7645.88→7645.89 us (0.01 us) [compute+transfer]
+  - 7724.00→7724.01 us (0.01 us) [compute+transfer]
+
+전체 구간 (시간 순):
+  - 24.02→25.52 us (1.50 us) [compute+transfer]
+  - 25.52→27.02 us (1.50 us) [compute+transfer]
+  - 27.02→27.03 us (0.01 us) [compute+transfer]
+  - 27.03→28.53 us (1.50 us) [compute+transfer]
+  - 28.53→30.03 us (1.50 us) [compute+transfer]
+  - 533.04→534.54 us (1.50 us) [compute+transfer]
+  - 534.54→536.04 us (1.50 us) [compute+transfer]
+  - 536.04→537.54 us (1.50 us) [compute+transfer]
+  - 537.54→537.55 us (0.01 us) [compute+transfer]
+  - 1351.57→1351.58 us (0.01 us) [compute+transfer]
+  - 1351.58→1353.08 us (1.50 us) [compute+transfer]
+  - 1576.38→1577.88 us (1.50 us) [compute+transfer]
+  - 1991.70→1991.71 us (0.01 us) [compute+transfer]
+  - 3561.73→3563.23 us (1.50 us) [compute+transfer]
+  - 3563.23→3563.24 us (0.01 us) [compute+transfer]
+  - 4061.73→4063.23 us (1.50 us) [compute+transfer]
+  - 4063.23→4064.73 us (1.50 us) [compute+transfer]
+  - 4064.73→4066.23 us (1.50 us) [compute+transfer]
+  - 5374.23→5374.24 us (0.01 us) [compute+transfer]
+  - 5624.23→5625.73 us (1.50 us) [compute+transfer]
+  - 6217.98→6217.99 us (0.01 us) [compute+transfer]
+  - 6217.99→6219.49 us (1.50 us) [compute+transfer]
+  - 7645.88→7645.89 us (0.01 us) [compute+transfer]
+  - 7724.00→7724.01 us (0.01 us) [compute+transfer]
+  - 7786.51→7788.01 us (1.50 us) [compute+transfer]
+  - 7788.01→7789.51 us (1.50 us) [compute+transfer]
+  - 7789.51→7791.01 us (1.50 us) [compute+transfer]
+  - 7791.01→7792.51 us (1.50 us) [compute+transfer]
+  - 7792.51→7794.01 us (1.50 us) [compute+transfer]
+  - 7794.01→7795.51 us (1.50 us) [compute+transfer]
+  - 7795.51→7795.52 us (0.01 us) [compute+transfer]
+================================================================================
+
+================================================================================
+✅ Simulation Complete!
+================================================================================

@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple, Optional
 from .scheduler import InferenceScheduler
 from .event import Event
+from .activation import ActivationManager
 
 
 class InferenceContext:
@@ -28,6 +29,29 @@ class InferenceContext:
         self.start_time_us: Optional[float] = None
         self.end_time_us: Optional[float] = None
         self.is_completed = False
+        self._reset_state()
+    
+    def _reset_state(self):
+        """실행 상태 초기화"""
+        pim = self.scheduler.pim
+        self.activation_manager = ActivationManager()
+        self.event_queue: List[Event] = []
+        self.array_busy_until = {i: 0.0 for i in range(pim.num_arrays)}
+        self.npu_busy_until = {i: 0.0 for i in range(pim.num_npus)}
+        self.shared_sram_bus_busy_until = 0.0
+        self.current_time_us = 0.0
+        self.completed_nodes: set = set()
+        self.running_nodes: Dict[str, Tuple[int, int]] = {}
+        self.running_npu_nodes: Dict[str, int] = {}
+        self.scheduled_nodes: set = set()
+        self.activation_lifetimes: Dict[str, Dict] = {}
+        self.total_compute_time_us = 0.0
+        self.total_transfer_time_us = 0.0
+        self.timeline: List[Event] = []
+        self.deallocated_count = 0
+        self.deallocated_bytes = 0
+        self.memory_events: List[Dict] = []
+        self.transfer_time_by_direction = {'read': 0.0, 'write': 0.0}
     
     def execute(self) -> Dict:
         """
@@ -36,10 +60,8 @@ class InferenceContext:
         Returns:
             실행 결과
         """
-        self.result = self.scheduler.run_inference(
-            self.input_batch_size,
-            self.input_shape
-        )
+        self._reset_state()
+        self.result = self.scheduler.run_with_context(self)
         
         self.start_time_us = 0.0
         self.end_time_us = self.result['total_time_us']
@@ -56,17 +78,6 @@ class InferenceContext:
     def get_timeline(self) -> List[Event]:
         """타임라인 반환"""
         return self.scheduler.get_timeline()
-    
-    # def get_stats(self) -> Dict:
-    #     """통계 정보"""
-    #     return {
-    #         'context_id': self.context_id,
-    #         'input_batch_size': self.input_batch_size,
-    #         'input_shape': self.input_shape,
-    #         'latency_us': self.get_latency(),
-    #         'is_completed': self.is_completed,
-    #         'result': self.result
-    #     }
     
     def __repr__(self):
         status = "completed" if self.is_completed else "pending"

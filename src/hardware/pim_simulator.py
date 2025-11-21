@@ -75,9 +75,10 @@ class PIMSimulator:
                               area_id: int,
                               weight_id: str,
                               shape: Tuple[int, int],
-                              metadata: Optional[Dict] = None) -> bool:
+                              metadata: Optional[Dict] = None,
+                              target_row_range: Optional[Tuple[int, int]] = None) -> bool:
         """
-        특정 Array의 특정 Area에 weight 배치
+        특정 Array의 특정 Area에 weight 배치 (reduction dimension 패킹 지원)
         
         Args:
             array_id: eFlash Array ID
@@ -85,34 +86,13 @@ class PIMSimulator:
             weight_id: Weight 식별자
             shape: (output_dim, reduction_dim)
             metadata: 메타데이터
+            target_row_range: 배치할 row 범위 (start, end). None이면 자동 할당
             
         Returns:
             배치 성공 여부
         """
         array = self.get_array(array_id)
-        return array.place_weight(area_id, weight_id, shape, metadata)
-    
-    def auto_place_weight(self,
-                          weight_id: str,
-                          shape: Tuple[int, int],
-                          metadata: Optional[Dict] = None) -> Tuple[bool, Optional[int], Optional[int]]:
-        """
-        자동으로 적절한 Array와 Area에 weight 배치
-        
-        Args:
-            weight_id: Weight 식별자
-            shape: (output_dim, reduction_dim)
-            metadata: 메타데이터
-            
-        Returns:
-            (배치 성공 여부, Array ID, Area ID)
-        """
-        for array in self.eflash_arrays:
-            success, area_id = array.auto_place_weight(weight_id, shape, metadata)
-            if success:
-                return True, array.array_id, area_id
-        
-        return False, None, None
+        return array.place_weight(area_id, weight_id, shape, metadata, target_row_range)
     
     def get_total_stats(self) -> Dict:
         """전체 PIM 시스템 통계"""

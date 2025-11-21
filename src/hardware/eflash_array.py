@@ -31,15 +31,17 @@ class eFlashArray:
                      area_id: int,
                      weight_id: str,
                      shape: Tuple[int, int],  # (output_dim, reduction_dim)
-                     metadata: Optional[Dict] = None) -> bool:
+                     metadata: Optional[Dict] = None,
+                     target_row_range: Optional[Tuple[int, int]] = None) -> bool:
         """
-        특정 Area에 weight 배치
+        특정 Area에 weight 배치 (reduction dimension 패킹 지원)
         
         Args:
             area_id: 배치할 Area ID (0-7)
             weight_id: Weight 식별자
             shape: (output_dim, reduction_dim)
             metadata: 추가 메타데이터
+            target_row_range: 배치할 row 범위 (start, end). None이면 자동 할당
             
         Returns:
             배치 성공 여부
@@ -47,32 +49,7 @@ class eFlashArray:
         if area_id < 0 or area_id >= self.NUM_AREAS:
             raise ValueError(f"Invalid area_id: {area_id}. Must be 0-{self.NUM_AREAS-1}")
         
-        return self.areas[area_id].place_weight(weight_id, shape, metadata)
-    
-    def auto_place_weight(self,
-                          weight_id: str,
-                          shape: Tuple[int, int],
-                          metadata: Optional[Dict] = None) -> Tuple[bool, Optional[int]]:
-        """
-        자동으로 적절한 Area에 weight 배치 (first-fit)
-        
-        Args:
-            weight_id: Weight 식별자
-            shape: (output_dim, reduction_dim)
-            metadata: 추가 메타데이터
-            
-        Returns:
-            (배치 성공 여부, 배치된 Area ID)
-        """
-        output_dim, reduction_dim = shape
-        
-        for area in self.areas:
-            if area.can_place_weight(output_dim, reduction_dim):
-                success = area.place_weight(weight_id, shape, metadata)
-                if success:
-                    return True, area.area_id
-        
-        return False, None
+        return self.areas[area_id].place_weight(weight_id, shape, metadata, target_row_range)
     
     def get_sram(self) -> SRAMBuffer:
         """SRAM 객체 반환"""

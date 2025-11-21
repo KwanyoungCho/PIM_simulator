@@ -68,14 +68,13 @@ class ActivationManager:
         """노드의 출력 버퍼 등록"""
         self.node_outputs[node_id] = buffer_id
     
-    def allocate_to_sram(self, buffer_id: str, sram_buffer, location_name: str) -> bool:
+    def allocate_to_sram(self, buffer_id: str, sram_buffer) -> bool:
         """
         SRAM에 버퍼 할당
         
         Args:
             buffer_id: 할당할 버퍼 ID
             sram_buffer: SRAMBuffer 객체
-            location_name: 위치 이름
             
         Returns:
             할당 성공 여부
@@ -86,16 +85,25 @@ class ActivationManager:
             return False
         
         # 실제 SRAM에 할당 (위치 정보는 storage_locations에서 관리)
-        success = sram_buffer.allocate(buffer_id, buffer.size_bytes)
+        success = sram_buffer.allocate(buffer_id, buffer.size_bytes, warn=True)
         return success
     
-    # def deallocate_from_sram(self, buffer_id: str, sram_buffer) -> bool:
-    #     """SRAM에서 버퍼 해제"""
-    #     buffer = self.buffers.get(buffer_id)
-    #     if not buffer:
-    #         return False
+    def deallocate_from_sram(self, buffer_id: str, sram_buffer) -> bool:
+        """
+        SRAM에서 버퍼 해제
         
-    #     return sram_buffer.deallocate(buffer_id)
+        Args:
+            buffer_id: 해제할 버퍼 ID
+            sram_buffer: SRAMBuffer 객체
+            
+        Returns:
+            해제 성공 여부
+        """
+        buffer = self.buffers.get(buffer_id)
+        if not buffer:
+            return False
+        
+        return sram_buffer.deallocate(buffer_id)
     
     def clear(self):
         """모든 버퍼 제거"""
