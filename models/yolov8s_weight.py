@@ -131,11 +131,11 @@ def assign_tiles_to_areas(graph, num_arrays: int = 20) -> Dict:
     print(f"Total arrays: {num_arrays}, Areas per array: {NUM_AREAS_PER_ARRAY}")
     print()
     
-    # Conv 노드만 필터링 (순서대로)
+    # Conv 노드만 필터링 (순서대로) - NPU 노드는 제외
     conv_nodes = [(node.node_id, node) for node in graph.get_all_nodes() 
-                  if node.node_type == "conv"]
+                  if node.node_type == "conv" and node.device_type == "eflash"]
     
-    print(f"Total Conv nodes: {len(conv_nodes)}")
+    print(f"Total Conv nodes: {len(conv_nodes)} (eFlash only, NPU nodes excluded)")
     print()
     
     # 각 Conv 노드에 대해 weight tile 생성 및 배치
@@ -329,12 +329,17 @@ def assign_tiles_to_areas(graph, num_arrays: int = 20) -> Dict:
     }
 
 
-def apply_weights_to_graph(graph, placement: Dict):
+def apply_weights_to_graph(graph, placement: Dict, update_non_weight_nodes=True):
     """
     배치 결과를 그래프의 노드에 적용 (tile별 위치 정보 포함)
+    NPU 노드는 제외됨
+    
+    Args:
+        update_non_weight_nodes: non-weight 노드들의 array_id/area_id를 입력 기반으로 재배정할지 여부
     """
+    # 1. Weight가 있는 노드들의 array_id/area_id 설정
     for node in graph.get_all_nodes():
-        if node.node_type == "conv" and node.node_id in placement:
+        if node.node_type == "conv" and node.device_type == "eflash" and node.node_id in placement:
             node_placements = placement[node.node_id]
             
             # 첫 번째 tile의 array/area로 노드 위치 업데이트 (대표 위치)
@@ -366,5 +371,83 @@ def apply_weights_to_graph(graph, placement: Dict):
                 current_row += tile_output_dim
             
             node.weight_tiles = weight_tiles
+    
+    # 2. Weight가 없는 eFlash 노드들(concat, reduce, upsample 등)의 array_id/area_id를 입력 노드 기반으로 자동 배정
+    if not update_non_weight_nodes:
+        return graph
+    
+    # 배정 대상: array_id가 None인 eFlash 노드들
+    nodes_to_assign = [n for n in graph.get_all_nodes() 
+                       if n.device_type == "eflash" and n.array_id is None]
+    
+    # 토폴로지 순서로 반복 처리 (의존성 해결)
+    max_iterations = len(nodes_to_assign) + 10
+    iteration = 0
+    
+    while nodes_to_assign and iteration < max_iterations:
+        iteration += 1
+        assigned_this_round = []
+        
+        for node in nodes_to_assign:
+            # 입력 노드들의 정보 수집: (array_id, area_id, has_weight, input_id)
+            input_info = []
+            for input_id in node.input_nodes:
+                input_node = graph.get_node(input_id)
+                if input_node and input_node.array_id is not None:
+                    has_weight = len(input_node.weight_tiles) > 0
+                    input_info.append((input_node.array_id, input_node.area_id, has_weight, input_id))
+            
+            # 입력이 없으면 skip (다음 iteration에서 재시도)
+            if not input_info:
+                continue
+            
+            # 배치 전략 (최종 완성)
+            # 핵심 원칙: 첫 번째 입력 = main data flow
+            # Weight 유무로 입력 분류
+            weight_inputs = [info for info in input_info if info[2]]     # weight 있음
+            no_weight_inputs = [info for info in input_info if not info[2]]  # weight 없음
+            
+            # 특수 케이스: Reduce 노드 - 입력 중 가장 높은 array 선택
+            if node.node_type == "reduce":
+                chosen = max(input_info, key=lambda x: x[0])
+            elif len(no_weight_inputs) == len(input_info):
+                # 모두 weight 없음
+                if len(no_weight_inputs) >= 3:
+                    # Case 1a: C2f concat (3+ 입력: [path1, path2, bn0, ...])
+                    # → 마지막 선택 (bottleneck 최종 출력)
+                    chosen = no_weight_inputs[-1]
+                else:
+                    # Case 1b: Residual concat (2 입력: [conv, residual])
+                    # → 첫 번째 선택 (main data flow)
+                    chosen = no_weight_inputs[0]
+            elif no_weight_inputs:
+                # Case 2: Weight 있는 것과 없는 것 섞임
+                # → 원본 순서 첫 번째 선택 (main data flow)
+                # input_info는 순서 보존되므로 첫 번째가 main flow
+                chosen = input_info[0]
+            else:
+                # Case 3: 모두 weight 있음
+                # → 마지막 선택 (복잡한 경로)
+                chosen = weight_inputs[-1]
+            
+            node.array_id = chosen[0]
+            node.area_id = chosen[1]
+            assigned_this_round.append(node)
+        
+        # 배정 완료된 노드 제거
+        for node in assigned_this_round:
+            nodes_to_assign.remove(node)
+        
+        # 진전이 없으면 종료
+        if not assigned_this_round:
+            break
+    
+    # 배정 실패한 노드는 기본값 사용
+    if nodes_to_assign:
+        print(f"⚠️  {len(nodes_to_assign)} eFlash nodes defaulted to array_id=0:")
+        for node in nodes_to_assign:
+            print(f"  - {node.node_id}")
+            node.array_id = 0
+            node.area_id = 0
     
     return graph

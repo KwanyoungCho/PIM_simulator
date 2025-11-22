@@ -179,17 +179,24 @@ class InferenceScheduler:
             flops = 2 * batch_size * input_features * output_features
             return flops
         
-        elif node_type == "add" or node_type == "concat":
-            # Element-wise operations (eFlash array에서 즉시 처리, 시간 0)
-            return 0
+        elif node_type == "conv":
+            # Convolution
+            # Output: (C_out, H_out, W_out)
+            # Input: (C_in, H_in, W_in)
+            # Kernel: (C_out, C_in, K_h, K_w)
+            # FLOP = 2 × C_out × H_out × W_out × C_in × K_h × K_w
+            
+            C_out, H_out, W_out = node.output_shape
+            C_in, H_in, W_in = node.input_shape
+            K_h = node.metadata.get('kernel_size', 3)
+            K_w = K_h  # Assume square kernel
+            
+            flops = 2 * C_out * H_out * W_out * C_in * K_h * K_w
+            return flops
         
-        elif node_type == "maxpool":
-            # MaxPool (eFlash array에서 즉시 처리, 시간 0)
-            return 0
-        
-        elif node_type == "upsample":
-            # Upsample (eFlash array에서 즉시 처리, 시간 0)
-            return 0
+        elif node_type in {"add", "concat", "maxpool", "upsample", "input"}:
+            # Element-wise operations and zero-cost nodes
+            return 0.1
         
         else:
             # 기타 연산
@@ -198,9 +205,9 @@ class InferenceScheduler:
     def _get_array_compute_time(self, node: ComputeNode, array_id: int) -> float:
         """
         eFlash array에서 노드를 실행할 때 걸리는 시간 계산.
-        경량 연산(concat/reduce/add/maxpool/upsample)은 0으로 처리한다.
+        경량 연산(concat/reduce/add/maxpool/upsample/input)은 0으로 처리한다.
         """
-        zero_cost_ops = {"concat", "reduce", "add", "maxpool", "upsample"}
+        zero_cost_ops = {"concat", "reduce", "add", "maxpool", "upsample", "input"}
         if node.node_type in zero_cost_ops:
             return 0.01
         array = self.pim.get_array(array_id)
@@ -652,14 +659,14 @@ class InferenceScheduler:
         transfer_time_us = event.data['transfer_time_us']
         transfer_phase = event.data.get('transfer_phase')
         
-        if node.device_type != "npu" and transfer_phase == 'shared_write':
+        if transfer_phase == 'shared_write':
             self._complete_shared_write(node, event)
             return
         
         # Device type에 따라 분기
         if node.device_type == "npu":
             # NPU 연산
-            npu_id = event.data['npu_id']
+            npu_id = event.data.get('npu_id') or node.npu_id
             npu = self.pim.get_npu(npu_id)
             
             npu_available_time = self.npu_busy_until.get(npu_id, 0.0)
@@ -824,6 +831,7 @@ class InferenceScheduler:
             consumers = self._get_consumer_nodes(node_id)
             locations = self._determine_activation_locations(node, consumers)
             
+            
             # Activation 버퍼 생성
             activation_buffer = ActivationBuffer(
                 buffer_id=buffer_id,
@@ -845,12 +853,17 @@ class InferenceScheduler:
             for location in locations:
                 if location == "shared_sram":
                     sram = self.pim.get_shared_sram()
-                else:
+                elif location.startswith("npu_"):
+                    npu_id = int(location.split("_")[1])
+                    sram = self.pim.get_npu(npu_id).get_sram()
+                else:  # array_X_sram
                     arr_id = int(location.split("_")[1])
                     sram = self.pim.get_array(arr_id).get_sram()
                 
                 # 이 위치를 실제로 사용할 consumer가 없으면 건너뜀
-                location_consumers = self._get_consumers_for_location(consumers, location, node.array_id)
+                producer_device_id = (node.device_type, 
+                                     node.npu_id if node.device_type == "npu" else node.array_id)
+                location_consumers = self._get_consumers_for_location(consumers, location, producer_device_id)
                 if not location_consumers:
                     continue
                 
@@ -866,22 +879,30 @@ class InferenceScheduler:
                     self._schedule_shared_write(node, buffer_id, activation_buffer, event.time_us, node_tag)
                 else:
                     # 내부 SRAM에는 즉시 할당 (compute 완료 시점)
-                    if sram.allocate(buffer_id, activation_buffer.size_bytes, warn=True):
-                        storage_entry = {
-                            'sram': sram,
-                            'consumers': location_consumers,
-                            'ref_count': len(location_consumers),
-                            'is_ready': True
-                        }
-                        self.activation_lifetimes[buffer_id]['storage_locations'][location] = storage_entry
-                        self.memory_events.append({
-                            'time_us': event.time_us,
-                            'type': 'alloc',
-                            'buffer': buffer_id,
-                            'location': location,
-                            'size_kb': activation_buffer.size_bytes / 1024,
-                            'consumers': list(location_consumers)
-                        })
+                    alloc_success = sram.allocate(buffer_id, activation_buffer.size_bytes, warn=False)
+                    if not alloc_success:
+                        # 내부 SRAM 할당 실패: shared SRAM fallback 없이 경고만 출력
+                        print(f"[ERROR] Internal SRAM allocation failed for {buffer_id} ({activation_buffer.size_bytes/1024:.2f} KB)")
+                        print(f"        Location: {location}, Node: {node_id}")
+                        print(f"        SRAM: {sram.name}, Used: {sram.used_bytes/1024:.2f} KB / {sram.size_bytes/1024:.2f} KB")
+                        print(f"        Note: Shared SRAM fallback is disabled. Data must fit in internal SRAM.")
+                        continue
+                    
+                    storage_entry = {
+                        'sram': sram,
+                        'consumers': location_consumers,
+                        'ref_count': len(location_consumers),
+                        'is_ready': True
+                    }
+                    self.activation_lifetimes[buffer_id]['storage_locations'][location] = storage_entry
+                    self.memory_events.append({
+                        'time_us': event.time_us,
+                        'type': 'alloc',
+                        'buffer': buffer_id,
+                        'location': location,
+                        'size_kb': activation_buffer.size_bytes / 1024,
+                        'consumers': list(location_consumers)
+                    })
         
         # Compute 완료 즉시 노드 완료 처리 (shared write와 독립적)
         self._finalize_node_completion(node, event.time_us, schedule_ready=True)

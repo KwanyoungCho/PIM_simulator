@@ -29,9 +29,9 @@ class GraphPreprocessor:
 
         tiled_nodes = [
             node for node in graph.get_all_nodes()
-            if node.node_type == "conv" and node.weight_tiles and len(node.weight_tiles) > 1
+            if node.node_type == "conv" and node.device_type == "eflash" and node.weight_tiles and len(node.weight_tiles) > 1
         ]
-        print(f"  Found {len(tiled_nodes)} tiled nodes")
+        print(f"  Found {len(tiled_nodes)} tiled nodes (eFlash only)")
 
         for parent in tiled_nodes:
             tile_groups = defaultdict(list)  # out_idx -> List[(red_idx, tile_idx, WeightTile)]

@@ -43,8 +43,10 @@ class GraphValidator:
     def _validate_node(self, node: ComputeNode):
         """개별 노드 검증"""
         
-        # Conv 노드만 검증 (concat, add는 제외)
+        # Conv 노드 중 eFlash만 검증 (NPU 노드는 제외)
         if node.node_type not in ["conv"]:
+            return
+        if node.device_type != "eflash":
             return
         
         # 1. Weight tile 존재 확인
@@ -156,6 +158,8 @@ class GraphValidator:
         """모든 weight tile이 배치되었는지 확인"""
         for node_id, node in self.graph.nodes.items():
             if node.node_type not in ["conv"]:
+                continue
+            if node.device_type != "eflash":
                 continue
             
             for tile in node.weight_tiles:

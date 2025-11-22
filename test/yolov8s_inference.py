@@ -14,6 +14,7 @@ from src import (
     InferenceContext,
     GraphPreprocessor,
     GraphValidator,
+    visualize_weight_placement,
 )
 
 
@@ -28,29 +29,32 @@ def setup_pim_with_yolov8s_weights(graph, num_arrays=20):
     Returns:
         (PIMSimulator, placement_result)
     """
-    print("\n[PIM 시뮬레이터 설정]")
-    print(f"  - eFlash Arrays: {num_arrays}")
-    print(f"  - NPUs: 0")
-    print(f"  - Area execution time: 1.5 us")
-    
     # PIM 생성
+    num_npus = 1  # NPU count (set to 0 for eFlash-only mode)
     pim = PIMSimulator(
         num_arrays=num_arrays,
-        num_npus=0,
+        num_npus=num_npus,  # Enable NPU for conv1, conv2, c2f_1, conv3, c2f_2
         area_execution_time_us=1.5,
         npu_tops=10.0,
-        array_sram_size_bytes=600 * 1024 * 1024,  # 600MB per array
-        npu_sram_size_bytes=2 * 1024 * 1024,      # 2MB (unused)
-        shared_sram_size_bytes=100 * 1024 * 1024  # 100MB
+        #### 현재 가능한데도 graph scheduling 때문에 안돌아감!!! --> 크게 잡고 사후 분석해야할 듯 ####
+        array_sram_size_bytes=10* 1024 * 1024,  # 800KB per array  
+        
+        npu_sram_size_bytes=100 * 1024 * 1024,  # 10MB per NPU
+        shared_sram_size_bytes=100 * 1024 * 1024  # 10MB
     )
+    
+    print("\n[PIM 시뮬레이터 설정]")
+    print(f"  - eFlash Arrays: {num_arrays}")
+    print(f"  - NPUs: {num_npus}")
+    print(f"  - Area execution time: 1.5 us")
     
     # Weight tile 배치 계획
     print("\n[Weight Tile 배치 계획]")
     result = assign_tiles_to_areas(graph, num_arrays=num_arrays)
     
-    # 그래프에 weight tiles 정보 추가
+    # 그래프에 weight tiles 정보 추가 (non-weight 노드는 tiling 후 배정)
     print("\n[그래프에 Weight Tiles 적용]")
-    apply_weights_to_graph(graph, result['placement'])
+    apply_weights_to_graph(graph, result['placement'], update_non_weight_nodes=False)
     
     # PIM Array에 실제로 weight 배치 (reduction dimension 패킹 포함)
     print("\n[PIM Array에 Weight 배치 중...]")
@@ -110,6 +114,10 @@ def main():
     graph = GraphPreprocessor.expand_tiled_nodes(graph)
     print(f"  - Expanded nodes: {len(graph.get_all_nodes())}")
     
+    # 3-1. Non-weight 노드들의 array_id를 tiling 후 재배정
+    print("\n[3-1/4] Reassigning non-weight nodes after tiling...")
+    apply_weights_to_graph(graph, placements['placement'], update_non_weight_nodes=True)
+    
     # 4. Inference 실행
     print("\n[4/4] Running inference...")
     scheduler = InferenceScheduler(pim, graph, shared_sram_bandwidth_kb_per_us=3.2)
@@ -140,6 +148,9 @@ def main():
         show_all_segments=True,
         timeline=context.timeline
     )
+    
+    # 6. Weight Placement 시각화
+    visualize_weight_placement(pim, placements, output_file='yolov8s_weight_placement.png')
   
     print("\n" + "=" * 80)
     print("✅ Simulation Complete!")

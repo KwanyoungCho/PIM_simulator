@@ -45,8 +45,9 @@ class SRAMBuffer:
             
         if not self.can_allocate(size_bytes):
             if warn:
-                print(f"Warning: {self.name} cannot allocate {size_bytes/1024:.2f} KB for {data_name} "
-                      f"(used {self.used_bytes/1024:.2f} KB / total {self.size_bytes/1024:.2f} KB)")
+                print(f"[WARNING] {self.name} cannot allocate {size_bytes/1024:.2f} KB for {data_name}")
+                print(f"          Current usage: {self.used_bytes/1024:.2f} KB / {self.size_bytes/1024:.2f} KB")
+                print(f"          Required: {size_bytes/1024:.2f} KB, Available: {self.get_available_bytes()/1024:.2f} KB")
             return False
         
         self.data_entries[data_name] = size_bytes

@@ -28,6 +28,7 @@ from .graph import (
     ComputeGraph,
     GraphPreprocessor,
     GraphValidator,
+    visualize_weight_placement,
 )
 
 __all__ = [
@@ -46,7 +47,8 @@ __all__ = [
     'GraphPreprocessor',
     'GraphValidator',
     'InferenceScheduler',
-    'InferenceContext'
+    'InferenceContext',
+    'visualize_weight_placement',
 ]
 
 __version__ = '0.2.0'

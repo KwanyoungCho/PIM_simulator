@@ -79,16 +79,34 @@ class ActivationPlanner:
                 consumers.append(node)
         return consumers
 
-    def consumers_for_location(self, consumers: List, location: str, producer_array_id: Optional[int]) -> Set[str]:
+    def consumers_for_location(self, consumers: List, location: str, producer_device_id: tuple) -> Set[str]:
+        """
+        특정 location을 사용할 consumer 노드들을 반환
+        
+        Args:
+            consumers: 모든 consumer 노드 리스트
+            location: 저장 위치 (shared_sram, array_X_sram, npu_X_sram)
+            producer_device_id: (device_type, id) 튜플 - e.g., ("npu", 0) or ("eflash", 2)
+        """
         location_consumers: Set[str] = set()
         if location == "shared_sram":
+            # Shared SRAM은 producer와 다른 device에 있는 consumer만 사용
             for consumer in consumers:
-                if consumer.array_id != producer_array_id:
+                consumer_device_id = (consumer.device_type, 
+                                     consumer.npu_id if consumer.device_type == "npu" else consumer.array_id)
+                if consumer_device_id != producer_device_id:
+                    location_consumers.add(consumer.node_id)
+        elif location.startswith("npu_"):
+            # NPU SRAM
+            npu_id = int(location.split("_")[1])
+            for consumer in consumers:
+                if consumer.device_type == "npu" and consumer.npu_id == npu_id:
                     location_consumers.add(consumer.node_id)
         else:
+            # Array SRAM
             arr_id = int(location.split("_")[1])
             for consumer in consumers:
-                if consumer.array_id == arr_id:
+                if consumer.device_type == "eflash" and consumer.array_id == arr_id:
                     location_consumers.add(consumer.node_id)
         return location_consumers
 
@@ -184,8 +202,6 @@ class ActivationPlanner:
             "direction": "write",
         }
         start_data = {
-            "array_id": node.array_id,
-            "area_id": node.area_id,
             "uses_shared_sram": True,
             "transfer_phase": "shared_write",
             "transfer_direction": "write",
@@ -193,6 +209,12 @@ class ActivationPlanner:
             "location": "shared_sram",
             "details": [detail],
         }
+        # Device-specific fields
+        if node.device_type == "npu":
+            start_data["npu_id"] = node.npu_id
+        else:
+            start_data["array_id"] = node.array_id
+            start_data["area_id"] = node.area_id
         if node_tag:
             start_data["node_tag"] = node_tag
 
@@ -222,8 +244,10 @@ class ActivationPlanner:
 
         sram = loc_info.get("sram") or self.pim.get_shared_sram()
         if not loc_info.get("is_ready"):
-            if not sram.allocate(buffer_id, lifetime["buffer"].size_bytes, warn=True):
-                print(f"[Warning] Shared SRAM allocation failed for {buffer_id}")
+            if not sram.allocate(buffer_id, lifetime["buffer"].size_bytes, warn=False):
+                print(f"[ERROR] Shared SRAM allocation failed for {buffer_id} ({lifetime['buffer'].size_bytes/1024:.2f} KB)")
+                print(f"        SRAM: {sram.name}, Used: {sram.used_bytes/1024:.2f} KB, Total: {sram.size_bytes/1024:.2f} KB")
+                print(f"        Consider increasing shared SRAM size or reducing activation sizes.")
                 return
             loc_info["sram"] = sram
             loc_info["is_ready"] = True

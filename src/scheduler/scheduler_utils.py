@@ -157,12 +157,12 @@ class TimelineFormatter:
             show_middle_omitted = False
         
         # 헤더
-        print(f"\n{'Node':50} | {'Start (us)':>10} | {'End (us)':>10} | {'Transfer':>10} | {'R/W (us)':>15} | {'Compute':>10} | {'Stall':>10} | {'Total':>10} | {'Location':10}")
-        print("-" * 160)
+        print(f"\n{'Node':55} | {'Start (us)':>10} | {'End (us)':>10} | {'Transfer':>10} | {'R/W (us)':>15} | {'Compute':>10} | {'Stall':>10} | {'Total':>10} | {'Location':10}")
+        print("-" * 165)
         
         for i, (node_id, timings) in enumerate(nodes_to_show):
             if show_middle_omitted and i == max_nodes//2:
-                print(f"{'...':^150}")
+                print(f"{'...':^155}")
             
             # Tiled 노드인지 확인
             is_tiled = timings.get('is_tiled', False)
@@ -186,9 +186,9 @@ class TimelineFormatter:
                 tag = timings.get('tag')
                 if tag:
                     label = f"{tag} {label}"
-                print(f"{label:50} | {start_time:10.2f} | {end_time:10.2f} | {transfer_time:10.2f} | {rw_column:15} | {compute_time:10.2f} | {stall_time:10.2f} | {total_time:10.2f} | {location[:10]:10}")
+                print(f"{label:55} | {start_time:10.2f} | {end_time:10.2f} | {transfer_time:10.2f} | {rw_column:15} | {compute_time:10.2f} | {stall_time:10.2f} | {total_time:10.2f} | {location[:10]:10}")
         
-        print("=" * 160)
+        print("=" * 165)
         
         # 통계
         total_transfer = 0
@@ -218,7 +218,7 @@ class TimelineFormatter:
         write_total = total_transfer_by_direction.get('write', 0.0)
         print(f"  Total Transfer Time: {total_transfer:.2f} us (Read {read_total:.2f} / Write {write_total:.2f})")
         print(f"  Total Compute Time: {total_compute:.2f} us")
-        print("=" * 150)
+        print("=" * 165)
     
     @staticmethod
     def _print_tiled_node(node_id: str, timings: Dict) -> None:
